@@ -1,2 +1,2 @@
 # ASD-Paragon-Apartment-Management-System
-Group project for Advanced Software Development
+Group project for Advanced Software Development.
