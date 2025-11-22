@@ -1,4 +1,12 @@
-from gui import root
+DB_HOST = "localhost"
+DB_PORT = 5432
+DB_NAME = ""
 
-SCREEN_WIDTH = root.winfo_screenwidth() * 0.75
-SCREEN_HEIGHT = root.winfo_screenheight() * 0.75
+# Application settings
+APP_TITLE = "Property Management System"
+APPEARANCE_MODE = "dark"
+COLOR_THEME = "dark-blue"
+LOGIN_BG_IMAGE = "images/temp_login_background.jpg"
+
+# Window settings
+WINDOW_SCALE = 0.75 

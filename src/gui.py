@@ -1,12 +1,55 @@
 from customtkinter import *
+from PIL import Image
+from auth import login
+import config
 
-root = CTk()
-
-def initialise(SCREEN_WIDTH, SCREEN_HEIGHT):
+class App(CTk):
     
-    root.geometry(f"{int(SCREEN_WIDTH)}x{int(SCREEN_HEIGHT)}")
-    root.after(1, root.wm_state, "zoomed")
-    root.title("Paragon Apartment Management System")
-    set_appearance_mode("dark")
+    def __init__(self):
+        super().__init__()
+        
+        SCREEN_WIDTH = self.winfo_screenwidth()
+        SCREEN_HEIGHT = self.winfo_screenheight()
+        
+        self.geometry(f"{int(SCREEN_WIDTH*config.WINDOW_SCALE)}x{int(SCREEN_HEIGHT*config.WINDOW_SCALE)}")
+        self.after(1, self.wm_state, "zoomed")
+        self.title(config.APP_TITLE)
+        set_appearance_mode(config.APPEARANCE_MODE)
+        set_default_color_theme(config.COLOR_THEME)
+        
+        self.login_screen(SCREEN_WIDTH, SCREEN_HEIGHT)
+        
+    def login_screen(self, SCREEN_WIDTH, SCREEN_HEIGHT):
+        login_background = CTkImage(light_image=Image.open(config.LOGIN_BG_IMAGE), dark_image=Image.open(config.LOGIN_BG_IMAGE), size=(SCREEN_WIDTH, SCREEN_HEIGHT))
+        background_label = CTkLabel(master=self, text="", image=login_background)
+        background_label.place(x=0, y=0, relwidth=1, relheight=1)
+        
+        login_frame = CTkFrame(master=self)
+        login_frame.place(relx=0.5, rely=0.5, anchor="center")
+        login_frame.grid_columnconfigure(0, weight=1)
+        
+        login_label = CTkLabel(master=login_frame, text="Login", font=("Arial", 50))
+        login_label.grid(row=0, column=0, pady=30, sticky="n")
+        
+        input_frame = CTkFrame(master=login_frame, fg_color=("transparent"))
+        input_frame.grid(row=1, column=0, padx=50)
+        
+        email_label = CTkLabel(master=input_frame, text="Email address", font=("Arial", 20))
+        email_label.pack(anchor="w", pady=(15, 1))
+        
+        email_entry = CTkEntry(master=input_frame, placeholder_text="example@email.com", font=("Arial", 20), width=300, height=50)
+        email_entry.pack(anchor="w", pady=(1, 15))
+        
+        password_label = CTkLabel(master=input_frame, text="Password", font=("Arial", 20))
+        password_label.pack(anchor="w", pady=(15, 1))
+        
+        password_entry = CTkEntry(master=input_frame, placeholder_text="Please enter password", font=("Arial", 20), show="•", width=300, height=50)
+        password_entry.pack(anchor="w", pady=(1, 15))
+        
+        login_button = CTkButton(master=login_frame, text="Log In", font=("Arial", 30), width=200, height=50, command=login)
+        login_button.grid(row=3, column=0, pady=30)
 
-    root.mainloop()
+
+def initialise():
+    app = App()
+    app.mainloop()
