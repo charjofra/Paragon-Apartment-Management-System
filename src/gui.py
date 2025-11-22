@@ -5,11 +5,11 @@ import config
 
 class App(CTk):
     
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         
-        SCREEN_WIDTH = self.winfo_screenwidth()
-        SCREEN_HEIGHT = self.winfo_screenheight()
+        SCREEN_WIDTH: int = self.winfo_screenwidth()
+        SCREEN_HEIGHT: int = self.winfo_screenheight()
         
         self.geometry(f"{int(SCREEN_WIDTH*config.WINDOW_SCALE)}x{int(SCREEN_HEIGHT*config.WINDOW_SCALE)}")
         self.after(1, self.wm_state, "zoomed")
@@ -19,7 +19,7 @@ class App(CTk):
         
         self.login_screen(SCREEN_WIDTH, SCREEN_HEIGHT)
         
-    def login_screen(self, SCREEN_WIDTH, SCREEN_HEIGHT):
+    def login_screen(self, SCREEN_WIDTH: int, SCREEN_HEIGHT: int) -> None:
         login_background = CTkImage(light_image=Image.open(config.LOGIN_BG_IMAGE), dark_image=Image.open(config.LOGIN_BG_IMAGE), size=(SCREEN_WIDTH, SCREEN_HEIGHT))
         background_label = CTkLabel(master=self, text="", image=login_background)
         background_label.place(x=0, y=0, relwidth=1, relheight=1)
@@ -50,6 +50,6 @@ class App(CTk):
         login_button.grid(row=3, column=0, pady=30)
 
 
-def initialise():
+def initialise() -> None:
     app = App()
     app.mainloop()
