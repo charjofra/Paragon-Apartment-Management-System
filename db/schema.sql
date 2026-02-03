@@ -1,0 +1,1 @@
+-- SQL database schema for a the apartment management system
