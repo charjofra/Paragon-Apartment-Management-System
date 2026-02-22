@@ -1,4 +1,5 @@
 import bcrypt
+import time
 from .models import User
 from .execute_sql import execute_read, execute_write
 
@@ -7,7 +8,7 @@ def login(email: str, password: str):
     # Returns a dict with user data if valid, otherwise None.
     
     query = """
-        SELECT user_id, location_id, full_name, email, password_hash, role, is_active
+        SELECT user_id, location_id, full_name, email, password_hash, role, is_active, created_at
         FROM users
         WHERE email = %s
     """
@@ -19,25 +20,32 @@ def login(email: str, password: str):
         return None
 
     # Grab the first (and should be only) user record
-    user = results[0]
+    user_data = results[0]
 
     # Check if the account is active
-    if user["is_active"] != 1:
+    if user_data["is_active"] != 1:
         return None
 
-    stored_hash = user["password_hash"]
+    stored_hash = user_data["password_hash"]
 
     # bcrypt expects bytes
     if not bcrypt.checkpw(password.encode("utf-8"), stored_hash.encode("utf-8")):
         return None
 
-    # don't return the hash to the rest of the app
-    user.pop("password_hash", None)
-    return user
+    # returns a User object
+    return User(
+        user_id=user_data["user_id"],
+        location_id=user_data["location_id"], 
+        full_name=user_data["full_name"],
+        email=user_data["email"],
+        password_hash="", 
+        created_at=user_data["created_at"], 
+        is_active=bool(user_data["is_active"])
+    )
 
 def create_user(full_name: str, email: str, password: str, role: str, location_id=None):
     # Creates a new user in the database.
-    #Returns the new user's ID.
+    # Returns the new user as a User object.
     
     # Hash the password
     password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
@@ -47,4 +55,14 @@ def create_user(full_name: str, email: str, password: str, role: str, location_i
         VALUES (%s, %s, %s, %s, %s)
     """
     
-    return execute_write(query, (location_id, full_name, email, password_hash, role))
+    new_user_id = execute_write(query, (location_id, full_name, email, password_hash, role))
+    
+    return User(
+        user_id=new_user_id,
+        location_id=location_id,
+        full_name=full_name,
+        email=email,
+        password_hash=password_hash,
+        created_at=time.time(),
+        is_active=True
+    )
