@@ -1,6 +1,6 @@
 from customtkinter import *
 from PIL import Image
-from auth import login
+from user_service import login
 import config
 
 class App(CTk):

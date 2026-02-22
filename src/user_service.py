@@ -1,9 +1,9 @@
 import bcrypt
 import time
-from .models import User
-from .execute_sql import execute_read, execute_write
+from models import User
+from execute_sql import execute_read, execute_write
 
-def login(email: str, password: str):
+def login(email: str, password: str) -> User | None:
     # Staff login using email + password.
     # Returns a dict with user data if valid, otherwise None.
     
@@ -38,12 +38,13 @@ def login(email: str, password: str):
         location_id=user_data["location_id"], 
         full_name=user_data["full_name"],
         email=user_data["email"],
-        password_hash="", 
+        password_hash="",
+        role=user_data["role"],
         created_at=user_data["created_at"], 
         is_active=bool(user_data["is_active"])
     )
 
-def create_user(full_name: str, email: str, password: str, role: str, location_id=None):
+def create_user(full_name: str, email: str, password: str, role: str, location_id=None) -> User:
     # Creates a new user in the database.
     # Returns the new user as a User object.
     
@@ -63,6 +64,7 @@ def create_user(full_name: str, email: str, password: str, role: str, location_i
         full_name=full_name,
         email=email,
         password_hash=password_hash,
+        role=role,
         created_at=time.time(),
         is_active=True
     )
