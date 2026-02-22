@@ -1,5 +1,5 @@
-# ASD-Paragon-Apartment-Management-System
-Group project for Advanced Software Development
+# Paragon-Apartment-Management-System
+Group project for Advanced Software Development and Systems Development
 
 install dependencies pip install mysql-connector-python bcrypt python-dotenv pillow customtkinter
 
