@@ -15,6 +15,19 @@
     );
 
 
+<<<<<<< Updated upstream
+=======
+-- 2) Users (staff)
+CREATE TABLE users (
+  user_id       INT AUTO_INCREMENT PRIMARY KEY,
+  location_id   INT NULL,
+  full_name     VARCHAR(150) NOT NULL,
+  email         VARCHAR(190) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('FRONT_DESK','FINANCE_MANAGER','MAINTENANCE_STAFF','ADMINISTRATOR','MANAGER','TENANT') NOT NULL,
+  is_active     TINYINT(1) NOT NULL DEFAULT 1,
+  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+>>>>>>> Stashed changes
 
     -- 2) Users (staff)
     CREATE TABLE users (
