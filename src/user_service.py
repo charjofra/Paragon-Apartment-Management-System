@@ -46,7 +46,7 @@ def login(email: str, password: str) -> User | None:
         is_active=bool(user_data["is_active"])
     )
 
-def create_user(full_name: str, email: str, password: str, role: str, location_id=None) -> User:
+def create_user(full_name: str, email: str, password: str, is_staff: bool, location_id: int = None) -> User:
     """
     Creates a new user in the database.
     Returns the new user as a User object.
@@ -56,11 +56,11 @@ def create_user(full_name: str, email: str, password: str, role: str, location_i
     password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     query = """
-        INSERT INTO users (location_id, full_name, email, password_hash, role)
+        INSERT INTO users (location_id, full_name, email, password_hash, is_staff)
         VALUES (%s, %s, %s, %s, %s)
     """
     
-    new_user_id = execute_write(query, (location_id, full_name, email, password_hash, role))
+    new_user_id = execute_write(query, (location_id, full_name, email, password_hash, is_staff))
     
     return User(
         user_id=new_user_id,
@@ -68,7 +68,7 @@ def create_user(full_name: str, email: str, password: str, role: str, location_i
         full_name=full_name,
         email=email,
         password_hash=password_hash,
-        role=role,
+        is_staff=is_staff,
         created_at=time.time(),
         is_active=True
     )
