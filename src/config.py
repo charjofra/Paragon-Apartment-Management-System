@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-import mysql.connector
 
 # Database settings
 load_dotenv()
@@ -12,15 +11,6 @@ DB_CONFIG = {
     "password": os.getenv("DB_PASSWORD", ""),
     "database": os.getenv("DB_NAME", "paragon_apartment_management_system"),
 }
-
-def get_db_connection():
-    """Establish a connection to the MySQL database."""
-    try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        return connection
-    except mysql.connector.Error as err:
-        print(f"Error connecting to database: {err}")
-        return None
 
 # Application settings
 APP_TITLE: str = "Property Management System"
