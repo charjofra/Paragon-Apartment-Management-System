@@ -10,3 +10,5 @@ DB_USER=root
 DB_PASSWORD=your_db_password
 DB_NAME=paragon_apartment_management_system
 or whatever your database settings are
+
+ALWAY USE PEP 8!!!!!!!!!!!!
