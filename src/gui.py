@@ -23,35 +23,47 @@ class App(CTk):
         background_label = CTkLabel(master=self, text="", image=login_background)
         background_label.place(x=0, y=0, relwidth=1, relheight=1)
         
-        # Make the frame an instance variable so it can be destroyed later
-        self.login_frame = CTkFrame(master=self)
+        self.login_frame = CTkFrame(master=self, fg_color=("#ffffff", "#2b2b2b"), border_width=0)
         self.login_frame.place(relx=0.5, rely=0.5, anchor="center")
-        self.login_frame.grid_columnconfigure(0, weight=1)
         
-        login_label = CTkLabel(master=self.login_frame, text="Login", font=("Arial", 50))
-        login_label.grid(row=0, column=0, pady=30, sticky="n")
+        # Left side (branding)
+        branding_frame = CTkFrame(master=self.login_frame, fg_color="#1f538d", width=350, height=550)
+        branding_frame.pack(side="left", fill="y", padx=0, pady=0)
+        branding_frame.pack_propagate(False)
         
-        input_frame = CTkFrame(master=self.login_frame, fg_color=("transparent"))
-        input_frame.grid(row=1, column=0, padx=50)
+        logo_label = CTkLabel(master=branding_frame, text="PARAGON", font=("Helvetica", 45, "bold"), text_color="white")
+        logo_label.pack(pady=(180, 10))
         
-        email_label = CTkLabel(master=input_frame, text="Email address", font=("Arial", 20))
-        email_label.pack(anchor="w", pady=(15, 1))
+        sub_logo = CTkLabel(master=branding_frame, text="Apartment Management\nSystem", font=("Helvetica", 20), text_color="#d0d0d0", justify="center")
+        sub_logo.pack()
         
-        self.email_entry = CTkEntry(master=input_frame, placeholder_text="example@email.com", font=("Arial", 20), width=300, height=50)
-        self.email_entry.pack(anchor="w", pady=(1, 15))
+        # Right side (login form)
+        form_frame = CTkFrame(master=self.login_frame, fg_color="transparent", width=450, height=550)
+        form_frame.pack(side="right", fill="both", expand=True, padx=50, pady=50)
         
-        password_label = CTkLabel(master=input_frame, text="Password", font=("Arial", 20))
-        password_label.pack(anchor="w", pady=(15, 1))
+        login_label = CTkLabel(master=form_frame, text="Welcome Back", font=("Helvetica", 36, "bold"))
+        login_label.pack(anchor="w", pady=(20, 5))
         
-        self.password_entry = CTkEntry(master=input_frame, placeholder_text="Please enter password", font=("Arial", 20), show="•", width=300, height=50)
-        self.password_entry.pack(anchor="w", pady=(1, 15))
+        subtitle = CTkLabel(master=form_frame, text="Please enter your details to sign in.", font=("Helvetica", 16), text_color="gray")
+        subtitle.pack(anchor="w", pady=(0, 40))
+        
+        email_label = CTkLabel(master=form_frame, text="Email address", font=("Helvetica", 15, "bold"))
+        email_label.pack(anchor="w", pady=(10, 5))
+        
+        self.email_entry = CTkEntry(master=form_frame, placeholder_text="example@email.com", font=("Helvetica", 15), width=350, height=50, border_width=1)
+        self.email_entry.pack(anchor="w", pady=(0, 20))
+        
+        password_label = CTkLabel(master=form_frame, text="Password", font=("Helvetica", 15, "bold"))
+        password_label.pack(anchor="w", pady=(10, 5))
+        
+        self.password_entry = CTkEntry(master=form_frame, placeholder_text="Enter your password", font=("Helvetica", 15), show="*", width=350, height=50, border_width=1)
+        self.password_entry.pack(anchor="w", pady=(0, 20))
 
-        # Hidden error label (only shows up if login fails)
-        self.error_label = CTkLabel(master=self.login_frame, text="", text_color="red", font=("Arial", 14))
-        self.error_label.grid(row=2, column=0)
+        self.error_label = CTkLabel(master=form_frame, text="", text_color="#ff4c4c", font=("Helvetica", 14))
+        self.error_label.pack(anchor="w", pady=(5, 0))
         
-        login_button = CTkButton(master=self.login_frame, text="Log In", font=("Arial", 30), width=200, height=50, command=self.handle_login)
-        login_button.grid(row=3, column=0, pady=30)
+        login_button = CTkButton(master=form_frame, text="Log In", font=("Helvetica", 18, "bold"), width=350, height=50, fg_color="#1f538d", hover_color="#14375e", command=self.handle_login)
+        login_button.pack(anchor="w", pady=(20, 20))
 
     def handle_login(self) -> None:
         """ Processes the login attempt and updates the GUI. """
