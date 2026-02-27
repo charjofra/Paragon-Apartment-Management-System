@@ -1,5 +1,5 @@
 class User:
-    def __init__(self, user_id: int, location_id: int, full_name: str, email: str, password_hash: str, is_staff: bool, date_created: float, is_active: bool) -> None:
+    def __init__(self, user_id: int, location_id: int, full_name: str, email: str, password_hash: str, is_staff: bool, date_created: float, is_active: bool, staff_id: int = None, role: str = None, tenant_id: int = None) -> None:
         self.user_id = user_id
         self.location_id = location_id
         self.full_name = full_name
@@ -8,3 +8,6 @@ class User:
         self.is_staff = is_staff
         self.date_created = date_created
         self.is_active = is_active
+        self.staff_id = staff_id
+        self.role = role
+        self.tenant_id = tenant_id
