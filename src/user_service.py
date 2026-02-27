@@ -10,9 +10,14 @@ def login(email: str, password: str) -> User | None:
     """
     
     query = """
-        SELECT user_id, location_id, full_name, email, password_hash, is_staff, is_active, date_created
-        FROM users
-        WHERE email = %s
+        SELECT u.user_id, u.location_id, u.full_name, u.email, u.password_hash, 
+               u.is_staff, u.is_active, u.date_created,
+               s.staff_id, s.role,
+               t.tenant_id
+        FROM users u
+        LEFT JOIN staff s ON u.user_id = s.user_id
+        LEFT JOIN tenants t ON u.user_id = t.user_id
+        WHERE u.email = %s
     """
     
     results = execute_read(query, (email,))
@@ -44,6 +49,9 @@ def login(email: str, password: str) -> User | None:
         is_staff=user_data["is_staff"],
         date_created=user_data["date_created"], 
         is_active=bool(user_data["is_active"])
+        staff_id=user_data["staff_id"],
+        role=user_data["role"],
+        tenant_id=user_data["tenant_id"]
     )
 
 def create_user(full_name: str, email: str, password: str, is_staff: bool, location_id: int = None) -> User:
