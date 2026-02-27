@@ -48,7 +48,7 @@ def login(email: str, password: str) -> User | None:
         password_hash="",
         is_staff=user_data["is_staff"],
         date_created=user_data["date_created"], 
-        is_active=bool(user_data["is_active"])
+        is_active=bool(user_data["is_active"]),
         staff_id=user_data["staff_id"],
         role=user_data["role"],
         tenant_id=user_data["tenant_id"]

@@ -1,2 +1,7 @@
 from .admin_dashboard import AdminDashboard
+from .manager_dashboard import ManagerDashboard
+from .front_desk_dashboard import FrontDeskDashboard
+from .maintenance_dashboard import MaintenanceDashboard
+from .finance_manager_dashboard import FinanceManagerDashboard
+from .tenant_dashboard import TenantDashboard
 from .login_screen import LoginScreen
