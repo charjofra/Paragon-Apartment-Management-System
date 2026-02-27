@@ -11,20 +11,21 @@ CREATE TABLE locations (
   location_id INT AUTO_INCREMENT PRIMARY KEY,
   city        VARCHAR(100) NOT NULL,
   address     VARCHAR(255) NULL,
-  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  date_created  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_location_city_address (city, address)
 );
 
--- 2) Users (staff)
+-- 2) Users
 CREATE TABLE users (
   user_id       INT AUTO_INCREMENT PRIMARY KEY,
   location_id   INT NULL,
   full_name     VARCHAR(150) NOT NULL,
   email         VARCHAR(190) NOT NULL,
+  phone         VARCHAR(50) NULL,
   password_hash VARCHAR(255) NOT NULL,
-  role ENUM('FRONT_DESK','FINANCE_MANAGER','MAINTENANCE_STAFF','ADMINISTRATOR','MANAGER') NOT NULL,
+  is_staff       TINYINT(1) NOT NULL DEFAULT 0,
   is_active     TINYINT(1) NOT NULL DEFAULT 1,
-  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  date_created    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_users_location
     FOREIGN KEY (location_id) REFERENCES locations(location_id)
@@ -33,41 +34,39 @@ CREATE TABLE users (
   UNIQUE KEY uq_users_email (email)
 );
 
--- 3) Tenants
+-- 3) Staff
+CREATE TABLE staff (
+  staff_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  role ENUM('FRONT_DESK','FINANCE_MANAGER','MAINTENANCE_STAFF','ADMINISTRATOR','MANAGER') NOT NULL,
+
+  CONSTRAINT fk_staff_user
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    ON DELETE CASCADE,
+
+  UNIQUE KEY uq_staff_user (user_id)
+);
+
+-- 4) Tenants
 CREATE TABLE tenants (
   tenant_id     INT AUTO_INCREMENT PRIMARY KEY,
+  user_id       INT NOT NULL,
   ni_number     VARCHAR(20) NOT NULL,
-  full_name     VARCHAR(150) NOT NULL,
-  phone         VARCHAR(50) NULL,
-  email         VARCHAR(190) NULL,
   occupation    VARCHAR(150) NULL,
   references_txt TEXT NULL,
   requirements  VARCHAR(255) NULL,
-  created_by_user_id INT NULL,
-  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_by_staff_id INT NULL,
+  date_created    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_tenants_user
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    ON DELETE CASCADE,
 
   CONSTRAINT fk_tenants_created_by
-    FOREIGN KEY (created_by_user_id) REFERENCES users(user_id)
+    FOREIGN KEY (created_by_staff_id) REFERENCES staff(staff_id)
     ON DELETE SET NULL,
 
   UNIQUE KEY uq_tenants_ni (ni_number)
-);
-
--- 4) Tenant accounts (1:1 with tenants)
-CREATE TABLE tenant_accounts (
-  tenant_account_id INT AUTO_INCREMENT PRIMARY KEY,
-  tenant_id INT NOT NULL,
-  email VARCHAR(190) NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  is_active TINYINT(1) NOT NULL DEFAULT 1,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-  CONSTRAINT fk_tenant_accounts_tenant
-    FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id)
-    ON DELETE CASCADE,
-
-  UNIQUE KEY uq_tenant_accounts_email (email),
-  UNIQUE KEY uq_tenant_accounts_tenant (tenant_id)
 );
 
 -- 5) Apartments
@@ -79,7 +78,7 @@ CREATE TABLE apartments (
   monthly_rent  DECIMAL(10,2) NOT NULL,
   rooms         INT NOT NULL,
   status ENUM('VACANT','OCCUPIED','MAINTENANCE') NOT NULL DEFAULT 'VACANT',
-  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  date_created    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_apartments_location
     FOREIGN KEY (location_id) REFERENCES locations(location_id)
@@ -104,7 +103,7 @@ CREATE TABLE leases (
   early_leave_penalty DECIMAL(10,2) NULL,
 
   created_by_user_id INT NULL,
-  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  date_created    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_leases_tenant
     FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id)
@@ -129,7 +128,7 @@ CREATE TABLE complaints (
   complaint_id  INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id     INT NOT NULL,
   lease_id      INT NULL,
-  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  date_created    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   description   TEXT NOT NULL,
   status ENUM('OPEN','IN_PROGRESS','RESOLVED','CLOSED') NOT NULL DEFAULT 'OPEN',
   handled_by_user_id INT NULL,
@@ -153,7 +152,7 @@ CREATE TABLE maintenance_requests (
   tenant_id     INT NOT NULL,
   apartment_id  INT NOT NULL,
   lease_id      INT NULL,
-  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  date_created    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   description   TEXT NOT NULL,
   priority ENUM('LOW','MEDIUM','HIGH','URGENT') NOT NULL DEFAULT 'MEDIUM',
   status ENUM('REPORTED','TRIAGED','SCHEDULED','IN_PROGRESS','RESOLVED','CLOSED') NOT NULL DEFAULT 'REPORTED',
@@ -257,7 +256,7 @@ CREATE TABLE notifications (
   user_id     INT NULL,
   type ENUM('LATE_PAYMENT','MAINTENANCE_UPDATE','LEASE_UPDATE','GENERAL') NOT NULL,
   message     VARCHAR(500) NOT NULL,
-  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  date_created  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   sent_at     DATETIME NULL,
 
   CONSTRAINT fk_notif_tenant
@@ -297,19 +296,27 @@ INSERT INTO locations (city, address) VALUES
 
 -- Demo hash placeholder so the SQL seed runs.
 -- Replace in your app with real bcrypt hashes.
-SET @DEMO_HASH = '$2b$12$C0m8n5p1uHq4bG1QzqvR2uQqgQWqW3eC8Qd5W0b0WQ4pKxg5pQm0a';
+SET @DEMO_HASH = '$2b$12$LoKOunU3tubtqW8Dumdr..xvz3jmGyik6M1VT2UPvldqqEmHWqc3i';
 
-INSERT INTO users (location_id, full_name, email, password_hash, role) VALUES
-(1, 'John Doe',        'admin@paragon.com',   @DEMO_HASH, 'ADMINISTRATOR'),
-(1, 'Jane Smith',      'manager@paragon.com', @DEMO_HASH, 'MANAGER'),
-(1, 'Frank Desk',      'frontdesk@paragon.com',@DEMO_HASH,'FRONT_DESK'),
-(1, 'Fiona Finance',   'finance@paragon.com', @DEMO_HASH, 'FINANCE_MANAGER'),
-(1, 'Manny Maint',     'maint@paragon.com',   @DEMO_HASH, 'MAINTENANCE_STAFF');
+-- 1. Create the base User accounts
+INSERT INTO users (location_id, full_name, email, password_hash, is_staff) VALUES
+(1, 'John Doe',        'admin@paragon.com',     @DEMO_HASH, 1), -- user_id 1
+(1, 'Jane Smith',      'manager@paragon.com',   @DEMO_HASH, 1), -- user_id 2
+(1, 'Frank Desk',      'frontdesk@paragon.com', @DEMO_HASH, 1), -- user_id 3
+(1, 'Fiona Finance',   'finance@paragon.com',   @DEMO_HASH, 1), -- user_id 4
+(1, 'Manny Maint',     'maint@paragon.com',     @DEMO_HASH, 1), -- user_id 5
+(2, 'John Smith',      'john@email.com',        @DEMO_HASH, 0); -- user_id 6 (Tenant)
 
-INSERT INTO tenants (ni_number, full_name, email)
-VALUES ('AB123456C', 'John Smith', 'john@email.com');
+-- 2. Create the Staff profiles (linking to user_id 1 through 5)
+INSERT INTO staff (user_id, role) VALUES
+(1, 'ADMINISTRATOR'),     -- staff_id 1
+(2, 'MANAGER'),           -- staff_id 2
+(3, 'FRONT_DESK'),        -- staff_id 3
+(4, 'FINANCE_MANAGER'),   -- staff_id 4
+(5, 'MAINTENANCE_STAFF'); -- staff_id 5
 
-INSERT INTO tenant_accounts (tenant_id, email, password_hash)
-VALUES (1, 'john@email.com', 'HASHED_PASSWORD');
+-- 3. Create the Tenant profile (linking to user_id 6)
+INSERT INTO tenants (user_id, ni_number, created_by_staff_id) VALUES
+(6, 'AB123456C', 3); -- Maps to John Smith, created by Frank Desk (staff_id 3)
 
 COMMIT;

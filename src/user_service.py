@@ -10,7 +10,7 @@ def login(email: str, password: str) -> User | None:
     """
     
     query = """
-        SELECT user_id, location_id, full_name, email, password_hash, role, is_active, created_at
+        SELECT user_id, location_id, full_name, email, password_hash, is_staff, is_active, date_created
         FROM users
         WHERE email = %s
     """
@@ -42,7 +42,7 @@ def login(email: str, password: str) -> User | None:
         email=user_data["email"],
         password_hash="",
         is_staff=user_data["is_staff"],
-        created_at=user_data["created_at"], 
+        date_created=user_data["date_created"], 
         is_active=bool(user_data["is_active"])
     )
 
@@ -69,6 +69,6 @@ def create_user(full_name: str, email: str, password: str, is_staff: bool, locat
         email=email,
         password_hash=password_hash,
         is_staff=is_staff,
-        created_at=time.time(),
+        date_created=time.time(),
         is_active=True
     )
