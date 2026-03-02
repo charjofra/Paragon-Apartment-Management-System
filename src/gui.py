@@ -75,9 +75,12 @@ class App(ctk.CTk):
         if self.current_frame:
             self.current_frame.destroy()
             
-        # Determine the user's role (assuming your user_service returns this!)
-        # If it doesn't have a role, we'll default to TENANT
-        user_role = getattr(user, 'role', 'TENANT')
+        # Determine the user's role
+        user_role = user.role
+        
+        # If user has no staff role but has a tenant_id, they are a tenant
+        if not user_role and getattr(user, 'tenant_id', None):
+            user_role = 'TENANT'
         
         # Look up the correct frame class. Default to AdminDashboard for now 
         # so you don't crash while testing if the role is missing.
@@ -86,6 +89,10 @@ class App(ctk.CTk):
         # Instantiate the correct dashboard and pack it
         self.current_frame = FrameClass(parent=self, user=user)
         self.current_frame.pack(fill="both", expand=True)
+
+    def logout(self):
+        """ Logs the user out and returns to the login screen. """
+        self.show_login_screen()
 
 
 def initialise() -> None:
