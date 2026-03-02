@@ -60,6 +60,10 @@ class TenantDashboard(ctk.CTkFrame):
     def setup_overview_tab(self):
         frame = self.tab_overview
         
+        # Clear existing widgets to prevent duplication on refresh
+        for widget in frame.winfo_children():
+            widget.destroy()
+        
         info_text = f"""
         Name: {self.user.full_name}
         Email: {self.user.email}
@@ -78,6 +82,10 @@ class TenantDashboard(ctk.CTkFrame):
 
     def setup_payments_tab(self):
         frame = self.tab_payments
+
+        # Clear existing widgets to prevent duplication on refresh
+        for widget in frame.winfo_children():
+            widget.destroy()
         
         # Action Buttons
         actions = ctk.CTkFrame(frame)
