@@ -42,6 +42,20 @@ class TenantDashboard(ctk.CTkFrame):
         self.setup_payments_tab()
         self.setup_maintenance_tab()
         self.setup_complaints_tab()
+        
+        # Check for overdue payments after loading UI
+        self.after(500, self.check_overdue_payments)
+
+    def check_overdue_payments(self):
+        overdue = self.service.get_unpaid_invoices(overdue_only=True)
+        if overdue:
+            count = len(overdue)
+            total_amount = sum(float(inv['amount_due']) for inv in overdue)
+            messagebox.showwarning(
+                "Overdue Payments Alert",
+                f"Attention: You have {count} overdue invoice(s) totaling £{total_amount:.2f}.\n"
+                "Please check the Payments tab to settle these immediately."
+            )
 
     def setup_overview_tab(self):
         frame = self.tab_overview
@@ -182,8 +196,51 @@ class TenantDashboard(ctk.CTkFrame):
              messagebox.showerror("Error", "Could not submit complaint. active lease?")
 
     def make_payment_popup(self):
-        # Simulation
-        dialog = ctk.CTkInputDialog(text="Enter Amount to Pay:", title="Make Payment")
-        amount = dialog.get_input()
-        if amount:
-            messagebox.showinfo("Payment", f"Payment of £{amount} processed successfully!")
+        unpaid_invoices = self.service.get_unpaid_invoices()
+        if not unpaid_invoices:
+            messagebox.showinfo("Info", "You have no unpaid invoices.")
+            return
+
+        # Create a custom popup window
+        popup = ctk.CTkToplevel(self)
+        popup.title("Make Payment")
+        popup.geometry("400x300")
+        
+        # Make the popup modal
+        popup.transient(self)
+        popup.grab_set()
+
+        ctk.CTkLabel(popup, text="Select Invoice to Pay:", font=("Arial", 14, "bold")).pack(pady=10)
+
+        # Invoice Selection
+        invoice_options = {f"Inv #{i['invoice_id']} - £{i['amount_due']} (Due: {i['due_date']})": i for i in unpaid_invoices}
+        selected_invoice = ctk.StringVar(value=list(invoice_options.keys())[0])
+        dropdown = ctk.CTkOptionMenu(popup, variable=selected_invoice, values=list(invoice_options.keys()))
+        dropdown.pack(pady=5)
+
+        ctk.CTkLabel(popup, text="Card Number (16 digits):").pack(pady=(15, 5))
+        card_entry = ctk.CTkEntry(popup, placeholder_text="XXXX XXXX XXXX XXXX")
+        card_entry.pack(pady=5)
+
+        def process_payment():
+            key = selected_invoice.get()
+            inv_data = invoice_options[key]
+            card_num = card_entry.get().replace(" ", "")
+
+            # Validation
+            if not card_num.isdigit() or len(card_num) != 16:
+                messagebox.showerror("Error", "Invalid Card Number. Must be 16 digits.", parent=popup)
+                return
+            
+            # Process
+            success = self.service.pay_invoice(inv_data['invoice_id'], float(inv_data['amount_due']))
+            if success:
+                messagebox.showinfo("Success", "Payment Successful!", parent=popup)
+                popup.destroy()
+                # Refresh UI
+                self.setup_payments_tab() 
+                self.setup_overview_tab() # Refresh alerts
+            else:
+                messagebox.showerror("Error", "Payment failed.", parent=popup)
+
+        ctk.CTkButton(popup, text="Pay Now", command=process_payment).pack(pady=20)

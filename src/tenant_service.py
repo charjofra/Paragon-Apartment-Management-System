@@ -34,18 +34,25 @@ class TenantService:
         """
         return execute_read(query, (self.tenant_id,))
 
-    def get_unpaid_invoices(self) -> List[Dict[str, Any]]:
+    def get_unpaid_invoices(self, overdue_only: bool = False) -> List[Dict[str, Any]]:
         """
-        Fetches unpaid invoices for this tenant to identify late payments.
+        Fetches unpaid invoices. If overdue_only is True, filters for past due date.
         """
-        query = """
+        base_query = """
             SELECT i.invoice_id, i.amount as amount_due, i.due_date, i.status
             FROM invoices i
             JOIN leases l ON i.lease_id = l.lease_id
-            WHERE l.tenant_id = %s AND i.status = 'UNPAID'
-            ORDER BY i.due_date ASC
+            WHERE l.tenant_id = %s 
         """
-        return execute_read(query, (self.tenant_id,))
+        
+        if overdue_only:
+            base_query += " AND i.status IN ('UNPAID', 'LATE') AND i.due_date < CURDATE()"
+        else:
+            base_query += " AND i.status = 'UNPAID'"
+            
+        base_query += " ORDER BY i.due_date ASC"
+        
+        return execute_read(base_query, (self.tenant_id,))
 
     def get_maintenance_requests(self) -> List[Dict[str, Any]]:
         """
@@ -117,4 +124,31 @@ class TenantService:
             VALUES (%s, %s, %s, 'OPEN')
         """
         execute_write(insert_query, (self.tenant_id, lease_id, description))
+        return True
+
+    def pay_invoice(self, invoice_id: int, amount: float) -> bool:
+        """
+        Records a payment for an invoice and updates invoice status.
+        """
+        # 1. Record the payment
+        payment_query = """
+            INSERT INTO payments (invoice_id, amount_paid, method, recorded_by_user_id)
+            VALUES (%s, %s, 'CARD', %s)
+        """
+        # We need the user_id associated with this tenant for recorded_by_user_id
+        # For simplicity, we can fetch it or just pass None if self.tenant_id is strictly tenant context
+        # But wait, self.tenant_id is the tenant ID, not user ID. 
+        # Let's fetch the user_id for this tenant.
+        user_query = "SELECT user_id FROM tenants WHERE tenant_id = %s"
+        users = execute_read(user_query, (self.tenant_id,))
+        user_id = users[0]['user_id'] if users else None
+
+        execute_write(payment_query, (invoice_id, amount, user_id))
+
+        # 2. Update invoice status
+        # Check if fully paid? For simplistic logic, assume full payment marks as PAID.
+        invoice_query = """
+            UPDATE invoices SET status = 'PAID' WHERE invoice_id = %s
+        """
+        execute_write(invoice_query, (invoice_id,))
         return True
