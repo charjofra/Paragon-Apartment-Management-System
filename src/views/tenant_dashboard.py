@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from models.user import User
+from models import User
 from tenant_service import TenantService
 from typing import TYPE_CHECKING
 from tkinter import messagebox
@@ -131,7 +131,7 @@ class TenantDashboard(ctk.CTkFrame):
         self.mnt_desc = ctk.CTkEntry(input_frame, placeholder_text="Description", width=300)
         self.mnt_desc.pack(side="left", padx=5)
         
-        self.mnt_priority = ctk.CTkComboBox(input_frame, values=["Low", "Medium", "High"])
+        self.mnt_priority = ctk.CTkOptionMenu(input_frame, values=["Low", "Medium", "High"])
         self.mnt_priority.set("Medium")
         self.mnt_priority.pack(side="left", padx=5)
 

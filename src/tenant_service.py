@@ -1,7 +1,5 @@
 from db_utils import execute_read, execute_write
-from models.payment import Payment
-from models.maintenance_request import MaintenanceRequest
-from models.complaint import Complaint
+from models import Payment, MaintenanceRequest, Complaint
 from typing import List, Dict, Any
 
 class TenantService:
