@@ -14,27 +14,22 @@ class LoginScreen(ctk.CTkFrame):
         self.on_login_attempt = on_login_attempt
         
         # 1. Full-screen Background
-        login_background = ctk.CTkImage(
-            light_image=Image.open(config.LOGIN_BG_IMAGE), 
-            dark_image=Image.open(config.LOGIN_BG_IMAGE), 
-            size=(screen_width, screen_height)
-        )
-        self.background_label = ctk.CTkLabel(self, text="", image=login_background)
+        self.background_label = ctk.CTkLabel(self, text="")
         self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
         
         # 2. Centered Inner Form Container
-        self.inner_frame = ctk.CTkFrame(self, fg_color=("#ffffff", "#2b2b2b"), border_width=0)
+        self.inner_frame = ctk.CTkFrame(self, border_width=0)
         self.inner_frame.place(relx=0.5, rely=0.5, anchor="center")
         
         # 3. Left side (branding)
-        branding_frame = ctk.CTkFrame(self.inner_frame, fg_color="#1f538d", width=350, height=550)
+        branding_frame = ctk.CTkFrame(self.inner_frame, fg_color="#4E8F69", width=350, height=550)
         branding_frame.pack(side="left", fill="y", padx=0, pady=0)
         branding_frame.pack_propagate(False)
         
         logo_label = ctk.CTkLabel(branding_frame, text="PARAGON", font=("Helvetica", 45, "bold"), text_color="white")
         logo_label.pack(pady=(180, 10))
         
-        sub_logo = ctk.CTkLabel(branding_frame, text="Apartment Management\nSystem", font=("Helvetica", 20), text_color="#d0d0d0", justify="center")
+        sub_logo = ctk.CTkLabel(branding_frame, text="Apartment Management\nSystem", font=("Helvetica", 20), justify="center")
         sub_logo.pack()
         
         # 4. Right side (login form)
@@ -63,7 +58,7 @@ class LoginScreen(ctk.CTkFrame):
         self.error_label.pack(anchor="w", pady=(5, 0))
         
         # Bind the button to the internal method
-        login_button = ctk.CTkButton(form_frame, text="Log In", font=("Helvetica", 18, "bold"), width=350, height=50, fg_color="#1f538d", hover_color="#14375e", command=self._handle_click)
+        login_button = ctk.CTkButton(form_frame, text="Log In", font=("Helvetica", 18, "bold"), width=350, height=50, command=self._handle_click)
         login_button.pack(anchor="w", pady=(20, 20))
 
     def _handle_click(self):

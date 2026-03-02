@@ -14,9 +14,8 @@ DB_CONFIG = {
 
 # Application settings
 APP_TITLE: str = "Property Management System"
-APPEARANCE_MODE: str = "dark"
-COLOR_THEME: str = "dark-blue"
-LOGIN_BG_IMAGE: str = "images/temp_login_background.jpg"
+APPEARANCE_MODE: str = "System"
+COLOR_THEME: str = "themes/paragon.json"
 
 # Window settings
 WINDOW_SCALE: float = 0.75
