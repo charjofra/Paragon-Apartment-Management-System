@@ -1,10 +1,9 @@
 import customtkinter as ctk
-from PIL import Image
 from user_service import login
 import config
 from views import LoginScreen, AdminDashboard, ManagerDashboard, FrontDeskDashboard, MaintenanceDashboard, FinanceManagerDashboard, TenantDashboard
 
-# 1. Setup our Scalable Route Map
+# Setup route map for different user roles and their respective dashboard frames
 ROLE_FRAME_MAP = {
     'ADMINISTRATOR': AdminDashboard,
     'MANAGER': ManagerDashboard,

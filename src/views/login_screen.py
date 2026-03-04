@@ -1,6 +1,5 @@
 import customtkinter as ctk
 import config
-from PIL import Image
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -22,43 +21,43 @@ class LoginScreen(ctk.CTkFrame):
         self.inner_frame.place(relx=0.5, rely=0.5, anchor="center")
         
         # 3. Left side (branding)
-        branding_frame = ctk.CTkFrame(self.inner_frame, fg_color="#4E8F69", width=350, height=550)
+        branding_frame = ctk.CTkFrame(self.inner_frame, fg_color=("#D5D5D4", "#353535"), width=350, height=550)
         branding_frame.pack(side="left", fill="y", padx=0, pady=0)
         branding_frame.pack_propagate(False)
         
-        logo_label = ctk.CTkLabel(branding_frame, text="PARAGON", font=("Helvetica", 45, "bold"), text_color="white")
+        logo_label = ctk.CTkLabel(branding_frame, text="PARAGON", font=("Helvetica Neue", 45, "bold"))
         logo_label.pack(pady=(180, 10))
         
-        sub_logo = ctk.CTkLabel(branding_frame, text="Apartment Management\nSystem", font=("Helvetica", 20), justify="center")
+        sub_logo = ctk.CTkLabel(branding_frame, text="Apartment Management\nSystem", font=("Helvetica Neue", 20), justify="center")
         sub_logo.pack()
         
         # 4. Right side (login form)
         form_frame = ctk.CTkFrame(self.inner_frame, fg_color="transparent", width=450, height=550)
         form_frame.pack(side="right", fill="both", expand=True, padx=50, pady=50)
         
-        login_label = ctk.CTkLabel(form_frame, text="Welcome Back", font=("Helvetica", 36, "bold"))
+        login_label = ctk.CTkLabel(form_frame, text="Welcome Back", font=("Helvetica Neue", 36, "bold"))
         login_label.pack(anchor="w", pady=(20, 5))
         
-        subtitle = ctk.CTkLabel(form_frame, text="Please enter your details to sign in.", font=("Helvetica", 16), text_color="gray")
+        subtitle = ctk.CTkLabel(form_frame, text="Please enter your details to sign in.", font=("Helvetica Neue", 16))
         subtitle.pack(anchor="w", pady=(0, 40))
         
-        email_label = ctk.CTkLabel(form_frame, text="Email address", font=("Helvetica", 15, "bold"))
+        email_label = ctk.CTkLabel(form_frame, text="Email address", font=("Helvetica Neue", 15, "bold"))
         email_label.pack(anchor="w", pady=(10, 5))
         
-        self.email_entry = ctk.CTkEntry(form_frame, placeholder_text="example@email.com", font=("Helvetica", 15), width=350, height=50, border_width=1)
+        self.email_entry = ctk.CTkEntry(form_frame, placeholder_text="example@email.com", font=("Helvetica Neue", 15), width=350, height=50, border_width=1)
         self.email_entry.pack(anchor="w", pady=(0, 20))
         
-        password_label = ctk.CTkLabel(form_frame, text="Password", font=("Helvetica", 15, "bold"))
+        password_label = ctk.CTkLabel(form_frame, text="Password", font=("Helvetica Neue", 15, "bold"))
         password_label.pack(anchor="w", pady=(10, 5))
         
-        self.password_entry = ctk.CTkEntry(form_frame, placeholder_text="Enter your password", font=("Helvetica", 15), show="*", width=350, height=50, border_width=1)
+        self.password_entry = ctk.CTkEntry(form_frame, placeholder_text="Enter your password", font=("Helvetica Neue", 15), show="*", width=350, height=50, border_width=1)
         self.password_entry.pack(anchor="w", pady=(0, 20))
 
-        self.error_label = ctk.CTkLabel(form_frame, text="", text_color="#ff4c4c", font=("Helvetica", 14))
+        self.error_label = ctk.CTkLabel(form_frame, text="", text_color="#ff4c4c", font=("Helvetica Neue", 14))
         self.error_label.pack(anchor="w", pady=(5, 0))
         
         # Bind the button to the internal method
-        login_button = ctk.CTkButton(form_frame, text="Log In", font=("Helvetica", 18, "bold"), width=350, height=50, command=self._handle_click)
+        login_button = ctk.CTkButton(form_frame, text="Log In", font=("Helvetica Neue", 18, "bold"), width=350, height=50, command=self._handle_click)
         login_button.pack(anchor="w", pady=(20, 20))
 
     def _handle_click(self):
