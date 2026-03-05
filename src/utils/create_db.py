@@ -1,4 +1,4 @@
-from db_utils import get_db_connection
+from utils.db_utils import get_db_connection
 
 def create_database() -> None:
     """ Creates the database and tables if they don't exist, should be idempotent. """

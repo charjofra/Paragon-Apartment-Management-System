@@ -1,11 +1,11 @@
 import customtkinter as ctk
 from models import User
-from tenant_service import TenantService
+from services.tenant_service import TenantService
 from typing import TYPE_CHECKING
 from tkinter import messagebox
 
 if TYPE_CHECKING:
-    from gui import App
+    from views.gui import App
 
 class TenantDashboard(ctk.CTkFrame):
     def __init__(self, parent: "App", user: User):

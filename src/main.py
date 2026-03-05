@@ -1,5 +1,5 @@
-from gui import initialise
-from create_db import create_database
+from views.gui import initialise
+from utils.create_db import create_database
 
 def main():
     create_database()

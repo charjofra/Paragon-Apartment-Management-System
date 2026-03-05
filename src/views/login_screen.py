@@ -3,7 +3,7 @@ import config
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from gui import App
+    from views.gui import App
 
 class LoginScreen(ctk.CTkFrame):
     def __init__(self, parent: "App", screen_width: int, screen_height: int, on_login_attempt):

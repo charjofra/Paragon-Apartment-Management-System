@@ -3,7 +3,7 @@ from models.user import User
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from gui import App
+    from views.gui import App
 
 class ManagerDashboard(ctk.CTkFrame):
     def __init__(self, parent: "App", user: User):

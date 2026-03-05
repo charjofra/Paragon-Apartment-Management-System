@@ -1,7 +1,7 @@
 import bcrypt
 import time
 from models import User
-from db_utils import execute_read, execute_write
+from utils.db_utils import execute_read, execute_write
 
 def login(email: str, password: str) -> User | None:
     """

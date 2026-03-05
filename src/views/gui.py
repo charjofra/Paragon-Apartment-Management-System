@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from user_service import login
+from services.user_service import login
 import config
 from views import LoginScreen, AdminDashboard, ManagerDashboard, FrontDeskDashboard, MaintenanceDashboard, FinanceManagerDashboard, TenantDashboard
 
