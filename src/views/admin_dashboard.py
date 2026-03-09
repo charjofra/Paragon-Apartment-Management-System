@@ -8,30 +8,38 @@ from datetime import date, timedelta
 if TYPE_CHECKING:
     from views.gui import App
 
-# ── Status colour + human-readable maps ───────────────────────────
+# ── Single colour map for every status / priority value ───────────
 
-COMPLAINT_STATUS_COLOURS = {
+C = {
+    # Shared
     "OPEN":        "#3498db",
     "IN_PROGRESS": "#f1c40f",
     "RESOLVED":    "#2ecc71",
     "CLOSED":      "#e74c3c",
-}
-
-MAINTENANCE_STATUS_COLOURS = {
+    # Maintenance-specific
     "REPORTED":    "#3498db",
     "TRIAGED":     "#9b59b6",
     "SCHEDULED":   "#f39c12",
-    "IN_PROGRESS": "#f1c40f",
-    "RESOLVED":    "#2ecc71",
-    "CLOSED":      "#e74c3c",
-}
-
-PRIORITY_COLOURS = {
+    # Priority
     "LOW":    "#2ecc71",
     "MEDIUM": "#f39c12",
     "HIGH":   "#e67e22",
     "URGENT": "#e74c3c",
+    # Lease
+    "ACTIVE":                "#2ecc71",
+    "ENDED":                 "#e74c3c",
+    "TERMINATION_REQUESTED": "#f39c12",
+    # Apartment
+    "VACANT":      "#2ecc71",
+    "OCCUPIED":    "#3498db",
+    "MAINTENANCE": "#f39c12",
+    # Invoice
+    "UNPAID":    "#e67e22",
+    "PAID":      "#2ecc71",
+    "LATE":      "#e74c3c",
+    "CANCELLED": "#95a5a6",
 }
+_GREY = "#95a5a6"
 
 _DISPLAY_OVERRIDES = {
     "TRIAGED": "Assigned",
@@ -120,7 +128,7 @@ class AdminDashboard(ctk.CTkFrame):
         hf.pack(fill="x")
         for i, h in enumerate(headers):
             ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"),
-                         width=col_widths[i]).pack(side="left", padx=4)
+                         width=col_widths[i], anchor="w").pack(side="left", padx=4)
         for row in rows:
             rf = ctk.CTkFrame(parent)
             rf.pack(fill="x", pady=1)
@@ -209,7 +217,7 @@ class AdminDashboard(ctk.CTkFrame):
         hf.pack(fill="x")
         for i, h in enumerate(headers):
             ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"),
-                         width=widths[i]).pack(side="left", padx=4)
+                         width=widths[i], anchor="w").pack(side="left", padx=4)
 
         for u in users:
             rf = ctk.CTkFrame(sf)
@@ -348,7 +356,7 @@ class AdminDashboard(ctk.CTkFrame):
         hf.pack(fill="x")
         for i, h in enumerate(headers):
             ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"),
-                         width=widths[i]).pack(side="left", padx=4)
+                         width=widths[i], anchor="w").pack(side="left", padx=4)
 
         for t in tenants:
             rf = ctk.CTkFrame(sf)
@@ -472,8 +480,8 @@ class AdminDashboard(ctk.CTkFrame):
         headers = ["Unit", "City", "Start", "End", "Rent", "Status"]
         widths = [80, 100, 100, 100, 80, 120]
         self._make_table(sf, headers,
-                         [(l["unit_code"], l["city"], str(l["start_date"]),
-                           str(l["end_date"]), f"£{l['monthly_rent']}",
+                         [(l["unit_code"], l["city"], _uk_date(l["start_date"]),
+                           _uk_date(l["end_date"]), f"£{l['monthly_rent']}",
                            l["status"]) for l in leases], widths)
 
     def _view_tenant_payments(self, tenant):
@@ -494,8 +502,8 @@ class AdminDashboard(ctk.CTkFrame):
         headers = ["Date", "Amount", "Method", "Due Date", "Inv Status"]
         widths = [130, 90, 110, 100, 90]
         self._make_table(sf, headers,
-                         [(str(p["paid_at"]), f"£{p['amount_paid']}",
-                           p["method"], str(p["due_date"]),
+                         [(_uk_date(p["paid_at"]), f"£{p['amount_paid']}",
+                           p["method"], _uk_date(p["due_date"]),
                            p["inv_status"]) for p in payments], widths)
 
     def _view_tenant_complaints(self, tenant):
@@ -516,7 +524,7 @@ class AdminDashboard(ctk.CTkFrame):
         headers = ["Date", "Description", "Status"]
         widths = [130, 350, 100]
         self._make_table(sf, headers,
-                         [(str(c["date_created"]), c["description"],
+                         [(_uk_date(c["date_created"]), c["description"],
                            c["status"]) for c in complaints], widths)
 
     # ── Apartments tab ────────────────────────────────────────────────
@@ -551,7 +559,7 @@ class AdminDashboard(ctk.CTkFrame):
         hf.pack(fill="x")
         for i, h in enumerate(headers):
             ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"),
-                         width=widths[i]).pack(side="left", padx=4)
+                         width=widths[i], anchor="w").pack(side="left", padx=4)
 
         for a in apts:
             rf = ctk.CTkFrame(sf)
@@ -560,7 +568,9 @@ class AdminDashboard(ctk.CTkFrame):
             ctk.CTkLabel(rf, text=a["apt_type"], width=widths[1], anchor="w").pack(side="left", padx=4)
             ctk.CTkLabel(rf, text=str(a["rooms"]), width=widths[2], anchor="w").pack(side="left", padx=4)
             ctk.CTkLabel(rf, text=f"£{a['monthly_rent']}", width=widths[3], anchor="w").pack(side="left", padx=4)
-            ctk.CTkLabel(rf, text=a["status"], width=widths[4], anchor="w").pack(side="left", padx=4)
+            ctk.CTkLabel(rf, text=_humanise(a["status"]), width=widths[4], anchor="w",
+                         text_color=C.get(a["status"], _GREY),
+                         font=("Arial", 12, "bold")).pack(side="left", padx=4)
             ctk.CTkButton(rf, text="Edit", width=60,
                            command=lambda _a=a: self._edit_apartment_popup(_a)).pack(side="left", padx=4)
 
@@ -680,24 +690,27 @@ class AdminDashboard(ctk.CTkFrame):
         hf.pack(fill="x")
         for i, h in enumerate(headers):
             ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"),
-                         width=widths[i]).pack(side="left", padx=3)
+                         width=widths[i], anchor="w").pack(side="left", padx=3)
 
         for l in leases:
-            rf = ctk.CTkFrame(sf)
+            rf = ctk.CTkFrame(sf, height=36)
             rf.pack(fill="x", pady=1)
+            rf.pack_propagate(False)
             status_text = l["status"]
             if l["early_leave_notice_date"]:
                 status_text += " (Early)"
             ctk.CTkLabel(rf, text=l["tenant_name"], width=widths[0], anchor="w").pack(side="left", padx=3)
             ctk.CTkLabel(rf, text=l["unit_code"], width=widths[1], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=str(l["start_date"]), width=widths[2], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=str(l["end_date"]), width=widths[3], anchor="w").pack(side="left", padx=3)
+            ctk.CTkLabel(rf, text=_uk_date(l["start_date"]), width=widths[2], anchor="w").pack(side="left", padx=3)
+            ctk.CTkLabel(rf, text=_uk_date(l["end_date"]), width=widths[3], anchor="w").pack(side="left", padx=3)
             ctk.CTkLabel(rf, text=f"£{l['monthly_rent']}", width=widths[4], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=status_text, width=widths[5], anchor="w").pack(side="left", padx=3)
+            s_colour = C.get(l["status"], _GREY)
+            ctk.CTkLabel(rf, text=_humanise(status_text), width=widths[5], anchor="w",
+                         text_color=s_colour, font=("Arial", 12, "bold")).pack(side="left", padx=3)
 
-            bf = ctk.CTkFrame(rf, fg_color="transparent")
-            bf.pack(side="left", padx=3)
             if l["status"] == "ACTIVE":
+                bf = ctk.CTkFrame(rf, fg_color="transparent")
+                bf.pack(side="left", padx=3)
                 ctk.CTkButton(bf, text="End", width=50,
                                command=lambda _l=l: self._end_lease(_l)).pack(side="left", padx=2)
                 ctk.CTkButton(bf, text="Early Term.", width=80,
@@ -867,10 +880,22 @@ class AdminDashboard(ctk.CTkFrame):
 
         headers = ["ID", "Tenant", "Unit", "Due Date", "Amount", "Status"]
         widths = [50, 140, 80, 100, 90, 80]
-        self._make_table(sf, headers,
-                         [(inv["invoice_id"], inv["tenant_name"], inv["unit_code"],
-                           str(inv["due_date"]), f"£{inv['amount']}",
-                           inv["status"]) for inv in invoices], widths)
+        hf = ctk.CTkFrame(sf)
+        hf.pack(fill="x")
+        for i, h in enumerate(headers):
+            ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"),
+                         width=widths[i], anchor="w").pack(side="left", padx=4)
+        for inv in invoices:
+            rf = ctk.CTkFrame(sf)
+            rf.pack(fill="x", pady=1)
+            ctk.CTkLabel(rf, text=str(inv["invoice_id"]), width=widths[0], anchor="w").pack(side="left", padx=4)
+            ctk.CTkLabel(rf, text=inv["tenant_name"], width=widths[1], anchor="w").pack(side="left", padx=4)
+            ctk.CTkLabel(rf, text=inv["unit_code"], width=widths[2], anchor="w").pack(side="left", padx=4)
+            ctk.CTkLabel(rf, text=_uk_date(inv["due_date"]), width=widths[3], anchor="w").pack(side="left", padx=4)
+            ctk.CTkLabel(rf, text=f"£{inv['amount']}", width=widths[4], anchor="w").pack(side="left", padx=4)
+            ctk.CTkLabel(rf, text=_humanise(inv["status"]), width=widths[5], anchor="w",
+                         text_color=C.get(inv["status"], _GREY),
+                         font=("Arial", 12, "bold")).pack(side="left", padx=4)
 
     def _create_invoice_popup(self):
         popup = ctk.CTkToplevel(self)
@@ -935,7 +960,7 @@ class AdminDashboard(ctk.CTkFrame):
 
         invoices = [inv for inv in self.service.get_all_invoices()
                     if inv["status"] in ("UNPAID", "LATE")]
-        inv_map = {f"#{inv['invoice_id']} — {inv['tenant_name']} £{inv['amount']} (Due: {inv['due_date']})": inv
+        inv_map = {f"#{inv['invoice_id']} — {inv['tenant_name']} £{inv['amount']} (Due: {_uk_date(inv['due_date'])})": inv
                    for inv in invoices}
         if not inv_map:
             ctk.CTkLabel(popup, text="No unpaid invoices.").pack(pady=20)
@@ -1002,7 +1027,7 @@ class AdminDashboard(ctk.CTkFrame):
         hf.pack(fill="x")
         for i, h in enumerate(headers):
             ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"),
-                         width=widths[i]).pack(side="left", padx=4)
+                         width=widths[i], anchor="w").pack(side="left", padx=4)
 
         for inv in late:
             rf = ctk.CTkFrame(sf)
@@ -1010,7 +1035,7 @@ class AdminDashboard(ctk.CTkFrame):
             ctk.CTkLabel(rf, text=str(inv["invoice_id"]), width=widths[0], anchor="w").pack(side="left", padx=4)
             ctk.CTkLabel(rf, text=inv["tenant_name"], width=widths[1], anchor="w").pack(side="left", padx=4)
             ctk.CTkLabel(rf, text=inv["unit_code"], width=widths[2], anchor="w").pack(side="left", padx=4)
-            ctk.CTkLabel(rf, text=str(inv["due_date"]), width=widths[3], anchor="w").pack(side="left", padx=4)
+            ctk.CTkLabel(rf, text=_uk_date(inv["due_date"]), width=widths[3], anchor="w").pack(side="left", padx=4)
             ctk.CTkLabel(rf, text=f"£{inv['amount']}", width=widths[4], anchor="w").pack(side="left", padx=4)
             # We need the tenant_id to send notification — fetch from invoices join
             ctk.CTkButton(rf, text="Send Alert", width=80,
@@ -1021,7 +1046,7 @@ class AdminDashboard(ctk.CTkFrame):
         result = execute_read_for_alert(inv_data["invoice_id"])
         if result:
             tid = result[0]["tenant_id"]
-            msg = f"Your invoice #{inv_data['invoice_id']} of £{inv_data['amount']} was due on {inv_data['due_date']}. Please settle immediately."
+            msg = f"Your invoice #{inv_data['invoice_id']} of £{inv_data['amount']} was due on {_uk_date(inv_data['due_date'])}. Please settle immediately."
             self.service.send_late_notification(tid, msg)
             messagebox.showinfo("Sent", "Late payment notification sent.", parent=parent_popup)
         else:
@@ -1057,7 +1082,7 @@ class AdminDashboard(ctk.CTkFrame):
         hf.pack(fill="x")
         for i, h in enumerate(headers):
             ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"),
-                         width=widths[i]).pack(side="left", padx=3)
+                         width=widths[i], anchor="w").pack(side="left", padx=3)
 
         for req in requests:
             rf = ctk.CTkFrame(sf, height=36)
@@ -1066,11 +1091,11 @@ class AdminDashboard(ctk.CTkFrame):
             ctk.CTkLabel(rf, text=req["tenant_name"], width=widths[0], anchor="w").pack(side="left", padx=3)
             ctk.CTkLabel(rf, text=req["unit_code"], width=widths[1], anchor="w").pack(side="left", padx=3)
             p_text = _humanise(req["priority"])
-            p_colour = PRIORITY_COLOURS.get(req["priority"], "#cccccc")
+            p_colour = C.get(req["priority"], _GREY)
             ctk.CTkLabel(rf, text=p_text, width=widths[2], anchor="w",
                          text_color=p_colour, font=("Arial", 12, "bold")).pack(side="left", padx=3)
             s_text = _humanise(req["status"])
-            s_colour = MAINTENANCE_STATUS_COLOURS.get(req["status"], "#cccccc")
+            s_colour = C.get(req["status"], _GREY)
             ctk.CTkLabel(rf, text=s_text, width=widths[3], anchor="w",
                          text_color=s_colour, font=("Arial", 12, "bold")).pack(side="left", padx=3)
             ctk.CTkLabel(rf, text=req["assigned_to"] or "Unassigned", width=widths[4], anchor="w").pack(side="left", padx=3)
@@ -1221,7 +1246,7 @@ class AdminDashboard(ctk.CTkFrame):
         hf.pack(fill="x")
         for i, h in enumerate(headers):
             ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"),
-                         width=widths[i]).pack(side="left", padx=3)
+                         width=widths[i], anchor="w").pack(side="left", padx=3)
 
         for c in complaints:
             rf = ctk.CTkFrame(sf)
@@ -1232,7 +1257,7 @@ class AdminDashboard(ctk.CTkFrame):
             desc = c["description"][:40] + "…" if len(c["description"]) > 40 else c["description"]
             ctk.CTkLabel(rf, text=desc, width=widths[3], anchor="w").pack(side="left", padx=3)
             cs_text = _humanise(c["status"])
-            cs_colour = COMPLAINT_STATUS_COLOURS.get(c["status"], "#cccccc")
+            cs_colour = C.get(c["status"], _GREY)
             ctk.CTkLabel(rf, text=cs_text, width=widths[4], anchor="w",
                          text_color=cs_colour, font=("Arial", 12, "bold")).pack(side="left", padx=3)
 
@@ -1350,7 +1375,7 @@ class AdminDashboard(ctk.CTkFrame):
                            d["resolution_details"][:35],
                            str(d["time_taken_hours"]),
                            f"£{d['cost']}",
-                           str(d["resolved_at"])[:10]) for d in data], widths)
+                           _uk_date(d["resolved_at"])) for d in data], widths)
 
 
 # Helper for late payment alert (avoids circular import)

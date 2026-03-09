@@ -8,30 +8,25 @@ from datetime import datetime, date
 if TYPE_CHECKING:
     from views.gui import App
 
-# ── Status colour + human-readable maps ───────────────────────────
+# ── Single colour map for every status / priority value ───────────
 
-COMPLAINT_STATUS_COLOURS = {
-    "OPEN":        "#3498db",   # blue
-    "IN_PROGRESS": "#f1c40f",   # yellow
-    "RESOLVED":    "#2ecc71",   # green
-    "CLOSED":      "#e74c3c",   # red
-}
-
-MAINTENANCE_STATUS_COLOURS = {
-    "REPORTED":    "#3498db",   # blue
-    "TRIAGED":     "#9b59b6",   # purple
-    "SCHEDULED":   "#f39c12",   # orange
-    "IN_PROGRESS": "#f1c40f",   # yellow
-    "RESOLVED":    "#2ecc71",   # green
-    "CLOSED":      "#e74c3c",   # red
-}
-
-PRIORITY_COLOURS = {
+C = {
+    "OPEN":        "#3498db",
+    "IN_PROGRESS": "#f1c40f",
+    "RESOLVED":    "#2ecc71",
+    "CLOSED":      "#e74c3c",
+    "REPORTED":    "#3498db",
+    "TRIAGED":     "#9b59b6",
+    "SCHEDULED":   "#f39c12",
     "LOW":    "#2ecc71",
     "MEDIUM": "#f39c12",
     "HIGH":   "#e67e22",
     "URGENT": "#e74c3c",
+    "UNPAID":    "#e67e22",
+    "PAID":      "#2ecc71",
+    "LATE":      "#e74c3c",
 }
+_GREY = "#95a5a6"
 
 _DISPLAY_OVERRIDES = {
     "TRIAGED": "Assigned",
@@ -121,7 +116,7 @@ class TenantDashboard(ctk.CTkFrame):
 
     @staticmethod
     def _priority_badge(parent, text: str, width: int = 80):
-        colour = PRIORITY_COLOURS.get(text, "#95a5a6")
+        colour = C.get(text, _GREY)
         badge = ctk.CTkFrame(parent, fg_color=colour, corner_radius=6, width=width, height=26)
         badge.pack_propagate(False)
         badge.pack(side="left", padx=5)
@@ -193,19 +188,19 @@ class TenantDashboard(ctk.CTkFrame):
             hf.pack(fill="x")
             for i, h in enumerate(headers):
                 ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"),
-                             width=widths[i]).pack(side="left", padx=5)
+                             width=widths[i], anchor="w").pack(side="left", padx=5)
 
             for p in payments:
                 row = ctk.CTkFrame(history_frame)
                 row.pack(fill="x", pady=2)
                 ctk.CTkLabel(row, text=_uk_date(p['paid_at']),
-                             width=widths[0]).pack(side="left", padx=5)
+                             width=widths[0], anchor="w").pack(side="left", padx=5)
                 ctk.CTkLabel(row, text=f"£{p['amount_paid']}",
-                             width=widths[1]).pack(side="left", padx=5)
+                             width=widths[1], anchor="w").pack(side="left", padx=5)
                 ctk.CTkLabel(row, text=_humanise(p['method']),
-                             width=widths[2]).pack(side="left", padx=5)
+                             width=widths[2], anchor="w").pack(side="left", padx=5)
                 ctk.CTkLabel(row, text=_uk_date(p['due_date']),
-                             width=widths[3]).pack(side="left", padx=5)
+                             width=widths[3], anchor="w").pack(side="left", padx=5)
 
     # ── Maintenance ───────────────────────────────────────────────────
 
@@ -253,16 +248,20 @@ class TenantDashboard(ctk.CTkFrame):
                 card = ctk.CTkFrame(list_frame)
                 card.pack(fill="x", pady=4, padx=5)
 
-                # Top row: date, description, badges
+                # Top row: label, priority, status, date
                 top = ctk.CTkFrame(card, fg_color="transparent")
                 top.pack(fill="x", padx=8, pady=(6, 2))
 
-                ctk.CTkLabel(top, text=_uk_date(req['date_created']),
-                             width=100, font=("Arial", 11)).pack(side="left", padx=(0, 8))
+                ctk.CTkLabel(top, text="Issue",
+                             font=("Arial", 12, "bold")).pack(side="left", padx=(0, 6))
 
-                status_colour = MAINTENANCE_STATUS_COLOURS.get(req['status'], "#95a5a6")
-                self._status_badge(top, req['status'], status_colour)
                 self._priority_badge(top, req['priority'])
+
+                status_colour = C.get(req['status'], _GREY)
+                self._status_badge(top, req['status'], status_colour)
+
+                ctk.CTkLabel(top, text=_uk_date(req['date_created']),
+                             font=("Arial", 11)).pack(side="left", padx=(8, 0))
 
                 if req.get('scheduled_at'):
                     ctk.CTkLabel(top, text=f"Scheduled: {_uk_date(req['scheduled_at'])}",
@@ -319,17 +318,17 @@ class TenantDashboard(ctk.CTkFrame):
             hf = ctk.CTkFrame(list_frame)
             hf.pack(fill="x")
             for h, w in [("Date", 120), ("Description", 340), ("Status", 120)]:
-                ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"), width=w).pack(side="left", padx=5)
+                ctk.CTkLabel(hf, text=h, font=("Arial", 12, "bold"), width=w, anchor="w").pack(side="left", padx=5)
 
             for c in complaints:
                 row = ctk.CTkFrame(list_frame)
                 row.pack(fill="x", pady=2)
                 ctk.CTkLabel(row, text=_uk_date(c['date_created']),
-                             width=120).pack(side="left", padx=5)
+                             width=120, anchor="w").pack(side="left", padx=5)
                 ctk.CTkLabel(row, text=c['description'], width=340,
                              anchor="w").pack(side="left", padx=5)
 
-                colour = COMPLAINT_STATUS_COLOURS.get(c['status'], "#95a5a6")
+                colour = C.get(c['status'], _GREY)
                 self._status_badge(row, c['status'], colour)
 
     # ── Actions ───────────────────────────────────────────────────────
