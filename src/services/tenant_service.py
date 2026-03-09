@@ -54,13 +54,18 @@ class TenantService:
 
     def get_maintenance_requests(self) -> List[Dict[str, Any]]:
         """
-        Fetches maintenance requests submitted by this tenant.
+        Fetches maintenance requests submitted by this tenant,
+        including resolution details if resolved.
         """
         query = """
-            SELECT request_id, description, status, date_created, priority
-            FROM maintenance_requests
-            WHERE tenant_id = %s
-            ORDER BY date_created DESC
+            SELECT mr.request_id, mr.description, mr.status, mr.date_created,
+                   mr.priority, mr.scheduled_at,
+                   res.resolution_details, res.resolved_at,
+                   res.time_taken_hours, res.cost
+            FROM maintenance_requests mr
+            LEFT JOIN maintenance_resolutions res ON mr.request_id = res.request_id
+            WHERE mr.tenant_id = %s
+            ORDER BY mr.date_created DESC
         """
         return execute_read(query, (self.tenant_id,))
 
@@ -96,10 +101,22 @@ class TenantService:
         
         insert_query = """
             INSERT INTO maintenance_requests (tenant_id, apartment_id, lease_id, description, priority, status)
-            VALUES (%s, %s, %s, %s, %s, 'OPEN')
+            VALUES (%s, %s, %s, %s, %s, 'REPORTED')
         """
         execute_write(insert_query, (self.tenant_id, apartment_id, lease_id, description, priority))
         return True
+
+    def get_complaints(self) -> List[Dict[str, Any]]:
+        """
+        Fetches complaints submitted by this tenant.
+        """
+        query = """
+            SELECT complaint_id, description, status, date_created
+            FROM complaints
+            WHERE tenant_id = %s
+            ORDER BY date_created DESC
+        """
+        return execute_read(query, (self.tenant_id,))
 
     def submit_complaint(self, description: str) -> bool:
         """
