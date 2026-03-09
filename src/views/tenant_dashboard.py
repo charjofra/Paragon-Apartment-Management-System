@@ -33,8 +33,14 @@ PRIORITY_COLOURS = {
     "URGENT": "#e74c3c",
 }
 
+_DISPLAY_OVERRIDES = {
+    "TRIAGED": "Assigned",
+}
+
 def _humanise(text: str) -> str:
-    """REPORTED -> Reported, IN_PROGRESS -> In Progress, etc."""
+    """REPORTED -> Reported, IN_PROGRESS -> In Progress, TRIAGED -> Assigned, etc."""
+    if text in _DISPLAY_OVERRIDES:
+        return _DISPLAY_OVERRIDES[text]
     return text.replace("_", " ").title()
 
 def _uk_date(value) -> str:

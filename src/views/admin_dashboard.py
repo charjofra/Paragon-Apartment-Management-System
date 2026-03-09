@@ -8,6 +8,52 @@ from datetime import date, timedelta
 if TYPE_CHECKING:
     from views.gui import App
 
+# ── Status colour + human-readable maps ───────────────────────────
+
+COMPLAINT_STATUS_COLOURS = {
+    "OPEN":        "#3498db",
+    "IN_PROGRESS": "#f1c40f",
+    "RESOLVED":    "#2ecc71",
+    "CLOSED":      "#e74c3c",
+}
+
+MAINTENANCE_STATUS_COLOURS = {
+    "REPORTED":    "#3498db",
+    "TRIAGED":     "#9b59b6",
+    "SCHEDULED":   "#f39c12",
+    "IN_PROGRESS": "#f1c40f",
+    "RESOLVED":    "#2ecc71",
+    "CLOSED":      "#e74c3c",
+}
+
+PRIORITY_COLOURS = {
+    "LOW":    "#2ecc71",
+    "MEDIUM": "#f39c12",
+    "HIGH":   "#e67e22",
+    "URGENT": "#e74c3c",
+}
+
+_DISPLAY_OVERRIDES = {
+    "TRIAGED": "Assigned",
+    "FRONT_DESK": "Front Desk",
+    "FINANCE_MANAGER": "Finance Manager",
+    "MAINTENANCE_STAFF": "Maintenance Staff",
+    "ADMINISTRATOR": "Administrator",
+    "MANAGER": "Manager",
+}
+
+def _humanise(text: str) -> str:
+    if text in _DISPLAY_OVERRIDES:
+        return _DISPLAY_OVERRIDES[text]
+    return text.replace("_", " ").title()
+
+def _uk_date(value) -> str:
+    if value is None:
+        return "—"
+    if isinstance(value, str):
+        value = date.fromisoformat(value[:10])
+    return value.strftime("%d/%m/%Y")
+
 
 class AdminDashboard(ctk.CTkFrame):
     def __init__(self, parent: "App", user: User):
@@ -168,7 +214,8 @@ class AdminDashboard(ctk.CTkFrame):
         for u in users:
             rf = ctk.CTkFrame(sf)
             rf.pack(fill="x", pady=1)
-            role = u["role"] or ("Tenant" if u["tenant_id"] else "—")
+            raw_role = u["role"] or ("Tenant" if u["tenant_id"] else "—")
+            role = _humanise(raw_role) if raw_role not in ("Tenant", "—") else raw_role
             active = "Yes" if u["is_active"] else "No"
             ctk.CTkLabel(rf, text=u["full_name"], width=widths[0], anchor="w").pack(side="left", padx=4)
             ctk.CTkLabel(rf, text=u["email"], width=widths[1], anchor="w").pack(side="left", padx=4)
@@ -1018,10 +1065,16 @@ class AdminDashboard(ctk.CTkFrame):
             rf.pack_propagate(False)
             ctk.CTkLabel(rf, text=req["tenant_name"], width=widths[0], anchor="w").pack(side="left", padx=3)
             ctk.CTkLabel(rf, text=req["unit_code"], width=widths[1], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=req["priority"], width=widths[2], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=req["status"], width=widths[3], anchor="w").pack(side="left", padx=3)
+            p_text = _humanise(req["priority"])
+            p_colour = PRIORITY_COLOURS.get(req["priority"], "#cccccc")
+            ctk.CTkLabel(rf, text=p_text, width=widths[2], anchor="w",
+                         text_color=p_colour, font=("Arial", 12, "bold")).pack(side="left", padx=3)
+            s_text = _humanise(req["status"])
+            s_colour = MAINTENANCE_STATUS_COLOURS.get(req["status"], "#cccccc")
+            ctk.CTkLabel(rf, text=s_text, width=widths[3], anchor="w",
+                         text_color=s_colour, font=("Arial", 12, "bold")).pack(side="left", padx=3)
             ctk.CTkLabel(rf, text=req["assigned_to"] or "Unassigned", width=widths[4], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=str(req["date_created"])[:10], width=widths[5], anchor="w").pack(side="left", padx=3)
+            ctk.CTkLabel(rf, text=_uk_date(req["date_created"]), width=widths[5], anchor="w").pack(side="left", padx=3)
 
             if req["status"] not in ("RESOLVED", "CLOSED"):
                 bf = ctk.CTkFrame(rf, fg_color="transparent")
@@ -1175,10 +1228,13 @@ class AdminDashboard(ctk.CTkFrame):
             rf.pack(fill="x", pady=1)
             ctk.CTkLabel(rf, text=c["tenant_name"], width=widths[0], anchor="w").pack(side="left", padx=3)
             ctk.CTkLabel(rf, text=c.get("unit_code") or "—", width=widths[1], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=str(c["date_created"])[:10], width=widths[2], anchor="w").pack(side="left", padx=3)
+            ctk.CTkLabel(rf, text=_uk_date(c["date_created"]), width=widths[2], anchor="w").pack(side="left", padx=3)
             desc = c["description"][:40] + "…" if len(c["description"]) > 40 else c["description"]
             ctk.CTkLabel(rf, text=desc, width=widths[3], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=c["status"], width=widths[4], anchor="w").pack(side="left", padx=3)
+            cs_text = _humanise(c["status"])
+            cs_colour = COMPLAINT_STATUS_COLOURS.get(c["status"], "#cccccc")
+            ctk.CTkLabel(rf, text=cs_text, width=widths[4], anchor="w",
+                         text_color=cs_colour, font=("Arial", 12, "bold")).pack(side="left", padx=3)
 
             if c["status"] not in ("RESOLVED", "CLOSED"):
                 bf = ctk.CTkFrame(rf, fg_color="transparent")
