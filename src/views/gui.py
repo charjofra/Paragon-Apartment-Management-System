@@ -8,7 +8,7 @@ ROLE_FRAME_MAP = {
     'ADMINISTRATOR': AdminDashboard,
     'MANAGER': ManagerDashboard,
     'FRONT_DESK': FrontDeskDashboard,
-    'MAINTENANCE': MaintenanceDashboard,
+    'MAINTENANCE_STAFF': MaintenanceDashboard,
     'FINANCE_MANAGER': FinanceManagerDashboard,
     'TENANT': TenantDashboard,
 }
