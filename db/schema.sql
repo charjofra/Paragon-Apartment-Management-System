@@ -296,16 +296,16 @@ INSERT INTO locations (city, address) VALUES
 
 -- Demo hash placeholder so the SQL seed runs.
 -- Replace in your app with real bcrypt hashes.
-SET @DEMO_HASH = '$2b$12$LoKOunU3tubtqW8Dumdr..xvz3jmGyik6M1VT2UPvldqqEmHWqc3i';
+SET @DEMO_HASH = '$2b$12$LoKOunU3tubtqW8Dumdr..xvz3jmGyik6M1VT2UPvldqqEmHWqc3i'; -- password123
 
 -- 1. Create the base User accounts
 INSERT INTO users (location_id, full_name, email, password_hash, is_staff) VALUES
-(1, 'John Doe',        'admin@paragon.com',     @DEMO_HASH, 1), -- user_id 1
-(1, 'Jane Smith',      'manager@paragon.com',   @DEMO_HASH, 1), -- user_id 2
-(1, 'Frank Desk',      'frontdesk@paragon.com', @DEMO_HASH, 1), -- user_id 3
-(1, 'Fiona Finance',   'finance@paragon.com',   @DEMO_HASH, 1), -- user_id 4
-(1, 'Manny Maint',     'maint@paragon.com',     @DEMO_HASH, 1), -- user_id 5
-(2, 'John Smith',      'john@email.com',        @DEMO_HASH, 0); -- user_id 6 (Tenant)
+(1, 'John Doe',          'admin@paragon.com',       @DEMO_HASH, 1), -- user_id 1
+(1, 'Jane Smith',        'manager@paragon.com',     @DEMO_HASH, 1), -- user_id 2
+(1, 'Frank Desk',        'frontdesk@paragon.com',   @DEMO_HASH, 1), -- user_id 3
+(1, 'Fiona Finance',     'finance@paragon.com',     @DEMO_HASH, 1), -- user_id 4
+(1, 'Manny Maintenance', 'maintenance@paragon.com', @DEMO_HASH, 1), -- user_id 5
+(2, 'John Smith',        'john@email.com',          @DEMO_HASH, 0); -- user_id 6 (Tenant)
 
 -- 2. Create the Staff profiles (linking to user_id 1 through 5)
 INSERT INTO staff (user_id, role) VALUES
