@@ -4,7 +4,6 @@ import mysql.connector
 def get_db_connection(connect_to_db: bool = True) -> mysql.connector.connection.MySQLConnection | None:
     """ Attempts to establish a connection to the MySQL database. """
     
-    # Make a copy of the config so we don't accidentally delete the main setting
     config_to_use = DB_CONFIG.copy()
     
     # If creating the DB, remove the database name from the connection attempt

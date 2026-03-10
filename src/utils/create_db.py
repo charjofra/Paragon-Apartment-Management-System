@@ -13,7 +13,6 @@ def create_database() -> None:
 
     db_name = DB_CONFIG.get("database", "paragon_apartment_management_system")
 
-    # Connect to the MySQL server (NOT the specific database yet)
     conn = get_db_connection(connect_to_db=False)
 
     if not conn:
@@ -23,16 +22,13 @@ def create_database() -> None:
     try:
         db_cursor = conn.cursor()
 
-        # Skip entirely if the database already exists
         if _database_exists(db_cursor, db_name):
             print(f"Database '{db_name}' already exists — skipping schema creation.")
             return
 
-        # Read the schema file
         with open('db/schema.sql', 'r') as f:
             sql_script = f.read()
 
-        # Execute each statement one by one
         for statement in sql_script.split(';'):
             if statement.strip():
                 db_cursor.execute(statement)
