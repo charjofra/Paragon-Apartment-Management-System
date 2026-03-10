@@ -6,7 +6,6 @@ def get_db_connection(connect_to_db: bool = True) -> mysql.connector.connection.
     
     config_to_use = DB_CONFIG.copy()
     
-    # If creating the DB, remove the database name from the connection attempt
     if not connect_to_db:
         config_to_use.pop("database", None)
 
