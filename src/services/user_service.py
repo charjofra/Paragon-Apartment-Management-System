@@ -2,6 +2,7 @@ import bcrypt
 import time
 from models import User
 from utils.db_utils import execute_read, execute_write
+from config import DEBUG_MODE
 
 def login(email: str, password: str) -> User | None:
     """
@@ -32,11 +33,11 @@ def login(email: str, password: str) -> User | None:
     if user_data["is_active"] != 1:
         return None
 
-    # -------- PASSWORD CHECK DISABLED --------
-    # stored_hash = user_data["password_hash"]
-    # if not bcrypt.checkpw(password.encode("utf-8"), stored_hash.encode("utf-8")):
-    #     return None
-    # ------------------------------------------
+    # skip password check while in debug mode
+    if not DEBUG_MODE:
+        stored_hash = user_data["password_hash"]
+        if not bcrypt.checkpw(password.encode("utf-8"), stored_hash.encode("utf-8")):
+            return None
 
     return User(
         user_id=user_data["user_id"],
