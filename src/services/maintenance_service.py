@@ -108,7 +108,27 @@ class MaintenanceService:
             (self.location_id,),
         )
 
+
     # ── Actions ───────────────────────────────────────────────────────
+
+    def submit_maintenance_request(self, tenant_id: int, apartment_id: int,
+                                   description: str, priority: str) -> None:
+        """Called by staff (Front Desk) on behalf of a tenant."""
+        execute_write(
+            """INSERT INTO maintenance_requests
+                   (tenant_id, apartment_id, description, priority, status,
+                    registered_by_user_id)
+               VALUES (%s, %s, %s, %s, 'REPORTED', %s)""",
+            (tenant_id, apartment_id, description, priority, self.user_id),
+        )
+
+    def submit_complaint(self, tenant_id: int, description: str) -> None:
+        """Called by staff (Front Desk) to log a complaint."""
+        execute_write(
+            """INSERT INTO complaints (tenant_id, description, status, handled_by_user_id)
+               VALUES (%s, %s, 'OPEN', %s)""",
+            (tenant_id, description, self.user_id),
+        )
 
     def get_maintenance_staff(self) -> List[Dict[str, Any]]:
         return execute_read(

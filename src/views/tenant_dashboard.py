@@ -241,21 +241,21 @@ class TenantDashboard(ctk.CTkFrame):
             return
 
         for lease in leases:
-            card = ctk.CTkFrame(sf)
-            card.pack(fill="x", pady=5, padx=5)
+            card = ctk.CTkFrame(sf, fg_color=("gray85", "gray17"))
+            card.pack(fill="x", pady=6, padx=5)
 
             # Top row: unit + status badge
             top = ctk.CTkFrame(card, fg_color="transparent")
-            top.pack(fill="x", padx=10, pady=(8, 4))
+            top.pack(fill="x", padx=15, pady=(10, 5))
 
             ctk.CTkLabel(top, text=f"{lease['unit_code']} — {lease['apt_type']}",
-                         font=("Arial", 14, "bold")).pack(side="left")
+                         font=("Arial", 16, "bold")).pack(side="left")
             s_colour = C.get(lease['status'], _GREY)
             self._status_badge(top, lease['status'], s_colour, width=140)
 
             # Details
             details_frame = ctk.CTkFrame(card, fg_color="transparent")
-            details_frame.pack(fill="x", padx=10, pady=(0, 4))
+            details_frame.pack(fill="x", padx=15, pady=(0, 10))
 
             info = (
                 f"City: {lease['city']}  |  "
@@ -264,24 +264,24 @@ class TenantDashboard(ctk.CTkFrame):
                 f"Start: {_uk_date(lease['start_date'])}  |  "
                 f"End: {_uk_date(lease['end_date'])}"
             )
-            ctk.CTkLabel(details_frame, text=info, font=("Arial", 12)).pack(anchor="w")
+            ctk.CTkLabel(details_frame, text=info, font=("Arial", 13), text_color="gray").pack(anchor="w")
 
             # Early termination info
             if lease.get('early_leave_notice_date'):
-                et_frame = ctk.CTkFrame(card, fg_color=("#fff3cd", "#3d3520"), corner_radius=4)
-                et_frame.pack(fill="x", padx=10, pady=(0, 4))
+                et_frame = ctk.CTkFrame(card, fg_color=("#fff3cd", "#3d3520"), corner_radius=6)
+                et_frame.pack(fill="x", padx=15, pady=(0, 10))
                 et_text = (
                     f"  Early Leave Requested  |  "
                     f"Notice: {_uk_date(lease['early_leave_notice_date'])}  |  "
                     f"Requested End: {_uk_date(lease['early_leave_requested_end'])}  |  "
                     f"Penalty: £{lease['early_leave_penalty']}"
                 )
-                ctk.CTkLabel(et_frame, text=et_text, font=("Arial", 11)).pack(pady=5, anchor="w")
+                ctk.CTkLabel(et_frame, text=et_text, font=("Arial", 12)).pack(pady=8, anchor="w", padx=10)
 
             # Early termination button (only for ACTIVE leases without existing request)
             if lease['status'] == 'ACTIVE' and not lease.get('early_leave_notice_date'):
                 btn_frame = ctk.CTkFrame(card, fg_color="transparent")
-                btn_frame.pack(fill="x", padx=10, pady=(0, 8))
+                btn_frame.pack(fill="x", padx=15, pady=(0, 10))
                 ctk.CTkButton(btn_frame, text="Request Early Termination",
                                fg_color="#e74c3c", hover_color="#c0392b",
                                command=lambda _l=lease: self._early_termination_popup(_l)
@@ -558,12 +558,12 @@ class TenantDashboard(ctk.CTkFrame):
             ctk.CTkLabel(list_frame, text="No maintenance requests yet.").pack(pady=20)
         else:
             for req in requests:
-                card = ctk.CTkFrame(list_frame)
-                card.pack(fill="x", pady=4, padx=5)
+                card = ctk.CTkFrame(list_frame, fg_color=("gray85", "gray17"))
+                card.pack(fill="x", pady=6, padx=5)
 
                 # Top row
                 top = ctk.CTkFrame(card, fg_color="transparent")
-                top.pack(fill="x", padx=8, pady=(6, 2))
+                top.pack(fill="x", padx=15, pady=(10, 5))
 
                 ctk.CTkLabel(top, text="Issue",
                              font=("Arial", 12, "bold")).pack(side="left", padx=(0, 6))
@@ -575,23 +575,23 @@ class TenantDashboard(ctk.CTkFrame):
 
                 if req.get('scheduled_at'):
                     ctk.CTkLabel(top, text=f"Scheduled: {_uk_date(req['scheduled_at'])}",
-                                 font=("Arial", 11)).pack(side="right", padx=5)
+                                 font=("Arial", 11, "bold")).pack(side="right", padx=5)
 
                 # Description
                 ctk.CTkLabel(card, text=req['description'], anchor="w",
-                             wraplength=550, justify="left",
-                             font=("Arial", 12)).pack(fill="x", padx=10, pady=(2, 4))
+                             wraplength=600, justify="left",
+                             font=("Arial", 13)).pack(fill="x", padx=15, pady=(2, 8))
 
                 # Resolution details
                 if req.get('resolution_details'):
                     res_frame = ctk.CTkFrame(card, fg_color=("#d5f5e3", "#1a3a2a"),
-                                              corner_radius=4)
-                    res_frame.pack(fill="x", padx=10, pady=(0, 6))
+                                              corner_radius=6)
+                    res_frame.pack(fill="x", padx=15, pady=(0, 10))
                     ctk.CTkLabel(res_frame, text="Resolution",
-                                 font=("Arial", 11, "bold")).pack(anchor="w", padx=8, pady=(4, 0))
+                                 font=("Arial", 11, "bold")).pack(anchor="w", padx=10, pady=(6, 2))
                     ctk.CTkLabel(res_frame, text=req['resolution_details'],
-                                 anchor="w", wraplength=520, justify="left",
-                                 font=("Arial", 11)).pack(fill="x", padx=8, pady=(0, 2))
+                                 anchor="w", wraplength=580, justify="left",
+                                 font=("Arial", 11)).pack(fill="x", padx=10, pady=(0, 2))
                     extras = []
                     if req.get('resolved_at'):
                         extras.append(f"Resolved: {_uk_date(req['resolved_at'])}")
@@ -601,7 +601,7 @@ class TenantDashboard(ctk.CTkFrame):
                         extras.append(f"Cost: £{req['cost']}")
                     if extras:
                         ctk.CTkLabel(res_frame, text="  |  ".join(extras),
-                                     font=("Arial", 10)).pack(anchor="w", padx=8, pady=(0, 4))
+                                     font=("Arial", 10)).pack(anchor="w", padx=10, pady=(4, 6))
 
     # ══════════════════════════════════════════════════════════════════
     #  COMPLAINTS TAB

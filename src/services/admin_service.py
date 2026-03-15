@@ -198,7 +198,30 @@ class AdminService:
         )
 
     # ── Apartment Management ──────────────────────────────────────────
+    def get_all_apartments(self) -> List[Dict[str, Any]]:
+        return execute_read(
+            """SELECT apartment_id, unit_code, apt_type, monthly_rent, rooms, status
+               FROM apartments
+               WHERE location_id = %s
+               ORDER BY unit_code""",
+            (self.location_id,),
+        )
 
+    def add_apartment(self, unit_code: str, apt_type: str, monthly_rent: float, rooms: int) -> int:
+        return execute_write(
+            """INSERT INTO apartments (location_id, unit_code, apt_type, monthly_rent, rooms, status)
+               VALUES (%s, %s, %s, %s, %s, 'VACANT')""",
+            (self.location_id, unit_code, apt_type, monthly_rent, rooms),
+        )
+
+    def update_apartment(self, apartment_id: int, unit_code: str, apt_type: str,
+                         monthly_rent: float, rooms: int, status: str) -> None:
+        execute_write(
+            """UPDATE apartments SET unit_code = %s, apt_type = %s, monthly_rent = %s,
+                      rooms = %s, status = %s
+               WHERE apartment_id = %s""",
+            (unit_code, apt_type, monthly_rent, rooms, status, apartment_id),
+        )
     def get_all_apartments(self) -> List[Dict[str, Any]]:
         return execute_read(
             """SELECT a.apartment_id, a.unit_code, a.apt_type, a.monthly_rent,
@@ -243,7 +266,7 @@ class AdminService:
             """SELECT l.lease_id, u.full_name AS tenant_name, a.unit_code,
                       loc.city, l.start_date, l.end_date, l.monthly_rent, l.status,
                       l.early_leave_notice_date, l.early_leave_requested_end,
-                      l.early_leave_penalty, t.tenant_id
+                      l.early_leave_penalty, t.tenant_id, l.apartment_id
                FROM leases l
                JOIN tenants t ON l.tenant_id = t.tenant_id
                JOIN users u ON t.user_id = u.user_id
@@ -252,6 +275,18 @@ class AdminService:
                WHERE a.location_id = %s
                ORDER BY l.start_date DESC""",
             (self.location_id,),
+        )
+
+    def get_all_complaints(self) -> List[Dict[str, Any]]:
+        return execute_read(
+            """SELECT c.complaint_id, u.full_name as tenant_name, 
+                      c.description, c.status, c.date_created
+               FROM complaints c
+               JOIN tenants t ON c.tenant_id = t.tenant_id
+               JOIN users u ON t.user_id = u.user_id
+               WHERE u.location_id = %s
+               ORDER BY c.date_created DESC""",
+            (self.location_id,)
         )
 
     def create_lease(self, tenant_id: int, apartment_id: int, start_date: str,

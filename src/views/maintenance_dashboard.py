@@ -267,7 +267,7 @@ class MaintenanceDashboard(ctk.CTkFrame):
             return
 
         for req in requests:
-            card = ctk.CTkFrame(sf)
+            card = ctk.CTkFrame(sf, fg_color=("gray85", "gray17"))
             card.pack(fill="x", pady=4, padx=5)
 
             top = ctk.CTkFrame(card, fg_color="transparent")
@@ -337,23 +337,27 @@ class MaintenanceDashboard(ctk.CTkFrame):
                          width=widths[i], anchor="w").pack(side="left", padx=3)
 
         for r in resolutions:
-            rf = ctk.CTkFrame(sf)
-            rf.pack(fill="x", pady=1)
-            ctk.CTkLabel(rf, text=r["unit_code"], width=widths[0],
+            rf = ctk.CTkFrame(sf, fg_color=("gray85", "gray17"))
+            rf.pack(fill="x", pady=2, padx=5)
+            # Add some inner padding/grid to make it look like a card row
+            inner = ctk.CTkFrame(rf, fg_color="transparent")
+            inner.pack(fill="x", padx=5, pady=5)
+
+            ctk.CTkLabel(inner, text=r["unit_code"], width=widths[0],
                          anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=r["tenant_name"], width=widths[1],
+            ctk.CTkLabel(inner, text=r["tenant_name"], width=widths[1],
                          anchor="w").pack(side="left", padx=3)
             desc = r["description"][:28] + "…" if len(r["description"]) > 28 else r["description"]
-            ctk.CTkLabel(rf, text=desc, width=widths[2],
+            ctk.CTkLabel(inner, text=desc, width=widths[2],
                          anchor="w").pack(side="left", padx=3)
             res_det = r["resolution_details"][:35] + "…" if len(r["resolution_details"]) > 35 else r["resolution_details"]
-            ctk.CTkLabel(rf, text=res_det, width=widths[3],
+            ctk.CTkLabel(inner, text=res_det, width=widths[3],
                          anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=f"{float(r['time_taken_hours']):.1f}h",
+            ctk.CTkLabel(inner, text=f"{float(r['time_taken_hours']):.1f}h",
                          width=widths[4], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=f"£{float(r['cost']):.2f}",
+            ctk.CTkLabel(inner, text=f"£{float(r['cost']):.2f}",
                          width=widths[5], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=_uk_date(r["resolved_at"]),
+            ctk.CTkLabel(inner, text=_uk_date(r["resolved_at"]),
                          width=widths[6], anchor="w").pack(side="left", padx=3)
 
     # ── Shared request list renderer ──────────────────────────────────
@@ -368,49 +372,56 @@ class MaintenanceDashboard(ctk.CTkFrame):
                          width=widths[i], anchor="w").pack(side="left", padx=3)
 
         for req in requests:
-            rf = ctk.CTkFrame(parent, height=36)
-            rf.pack(fill="x", pady=1)
-            rf.pack_propagate(False)
+            # Card style
+            rf = ctk.CTkFrame(parent, corner_radius=6, fg_color=("gray85", "gray17"))
+            rf.pack(fill="x", pady=4, padx=5)
+            
+            # Using grid inside the card for better alignment if needed, 
+            # but sticking to pack(side=left) to match headers structure for now
+            # Layout: [Tenant | Unit | Priority | Status | Assigned | Date | Actions]
+            
+            # Inner container to hold the row content with padding
+            inner = ctk.CTkFrame(rf, fg_color="transparent")
+            inner.pack(fill="x", padx=5, pady=8)
 
-            ctk.CTkLabel(rf, text=req["tenant_name"], width=widths[0],
-                         anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=req["unit_code"], width=widths[1],
-                         anchor="w").pack(side="left", padx=3)
+            ctk.CTkLabel(inner, text=req["tenant_name"], width=widths[0], anchor="w").pack(side="left", padx=3)
+            ctk.CTkLabel(inner, text=req["unit_code"], width=widths[1], anchor="w").pack(side="left", padx=3)
 
             p_text = _humanise(req["priority"])
             p_colour = C.get(req["priority"], _GREY)
-            ctk.CTkLabel(rf, text=p_text, width=widths[2], anchor="w",
-                         text_color=p_colour,
-                         font=("Arial", 12, "bold")).pack(side="left", padx=3)
+            ctk.CTkLabel(inner, text=p_text, width=widths[2], anchor="w",
+                         text_color=p_colour, font=("Arial", 12, "bold")).pack(side="left", padx=3)
 
             s_text = _humanise(req["status"])
             s_colour = C.get(req["status"], _GREY)
-            ctk.CTkLabel(rf, text=s_text, width=widths[3], anchor="w",
-                         text_color=s_colour,
-                         font=("Arial", 12, "bold")).pack(side="left", padx=3)
+            ctk.CTkLabel(inner, text=s_text, width=widths[3], anchor="w",
+                         text_color=s_colour, font=("Arial", 12, "bold")).pack(side="left", padx=3)
 
-            ctk.CTkLabel(rf, text=req["assigned_to"] or "Unassigned",
-                         width=widths[4], anchor="w").pack(side="left", padx=3)
-            ctk.CTkLabel(rf, text=_uk_date(req["date_created"]),
-                         width=widths[5], anchor="w").pack(side="left", padx=3)
+            assigned = req["assigned_to"] or "Unassigned"
+            ctk.CTkLabel(inner, text=assigned, width=widths[4], anchor="w").pack(side="left", padx=3)
+            
+            date_str = _uk_date(req["date_created"])
+            ctk.CTkLabel(inner, text=date_str, width=widths[5], anchor="w").pack(side="left", padx=3)
 
+            # Actions area
+            action_frame = ctk.CTkFrame(inner, fg_color="transparent")
+            action_frame.pack(side="left", padx=3, fill="both")
+            
             if show_actions and req["status"] not in ("RESOLVED", "CLOSED"):
-                bf = ctk.CTkFrame(rf, fg_color="transparent")
-                bf.pack(side="left", padx=3)
                 if req["status"] == "REPORTED":
-                    ctk.CTkButton(bf, text="Assign", width=55,
+                    ctk.CTkButton(action_frame, text="Assign", width=55,
                                    command=lambda _r=req: self._assign_popup(_r)).pack(side="left", padx=2)
                 if req["status"] in ("TRIAGED", "REPORTED"):
-                    ctk.CTkButton(bf, text="Schedule", width=60,
+                    ctk.CTkButton(action_frame, text="Schedule", width=60,
                                    command=lambda _r=req: self._schedule_popup(_r)).pack(side="left", padx=2)
                 if req["status"] in ("SCHEDULED", "TRIAGED"):
-                    ctk.CTkButton(bf, text="Start", width=50,
+                    ctk.CTkButton(action_frame, text="Start", width=50,
                                    command=lambda _r=req: self._start_work(_r)).pack(side="left", padx=2)
                 if req["status"] in ("IN_PROGRESS", "SCHEDULED", "TRIAGED"):
-                    ctk.CTkButton(bf, text="Resolve", width=55,
+                    ctk.CTkButton(action_frame, text="Resolve", width=55,
                                    command=lambda _r=req: self._resolve_popup(_r)).pack(side="left", padx=2)
             elif req["status"] in ("RESOLVED", "CLOSED"):
-                ctk.CTkLabel(rf, text="✓ Completed", width=widths[6],
+                ctk.CTkLabel(action_frame, text="✓ Completed",
                              text_color="#2ecc71", anchor="w").pack(side="left", padx=3)
 
     # ── Action popups ─────────────────────────────────────────────────
