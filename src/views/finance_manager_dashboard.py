@@ -349,7 +349,7 @@ class FinanceManagerDashboard(ctk.CTkFrame):
             ax1.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
         else:
             ax1.pie([1], labels=["No Data Available"], colors=["#e0e0e0"], startangle=90)
-            ax1.set_title("Collected vs Pending Rent")
+        ax1.set_title("Collected vs Pending Rent")
         
         c1 = ctk.CTkFrame(grid)
         c1.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
