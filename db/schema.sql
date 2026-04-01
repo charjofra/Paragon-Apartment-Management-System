@@ -289,8 +289,8 @@ CREATE INDEX idx_audit_happened ON audit_logs(happened_at);
 START TRANSACTION;
 
 INSERT INTO locations (city, address) VALUES
-('Springfield', '123 Main St'),
-('Shelbyville', '456 Elm St');
+('Bristol', '123 Filton Avenue'),
+('London', '12 Oxford Street');
 
 -- Demo hash placeholder so the SQL seed runs.
 -- Replace in your app with real bcrypt hashes.
