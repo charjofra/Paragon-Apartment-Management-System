@@ -1,5 +1,6 @@
 import bcrypt
-from utils.db_utils import execute_read, execute_write
+import re
+from utils.db_utils import execute_read, execute_write, get_db_connection
 from typing import List, Dict, Any, Optional
 
 
@@ -125,26 +126,56 @@ class AdminService:
     def register_tenant(self, full_name: str, email: str, password: str,
                         phone: str, ni_number: str, occupation: str,
                         references_txt: str, requirements: str) -> Optional[int]:
-        pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-        user_id = execute_write(
-            """INSERT INTO users (location_id, full_name, email, phone, password_hash, is_staff)
-               VALUES (%s, %s, %s, %s, %s, 0)""",
-            (self.location_id, full_name, email, phone, pw_hash),
-        )
-        if user_id:
-            # Fetch this admin's staff_id
-            staff = execute_read(
-                "SELECT staff_id FROM staff WHERE user_id = %s", (self.user_id,)
-            )
-            staff_id = staff[0]["staff_id"] if staff else None
-            tenant_id = execute_write(
-                """INSERT INTO tenants (user_id, ni_number, occupation, references_txt,
-                                       requirements, created_by_staff_id)
-                   VALUES (%s, %s, %s, %s, %s, %s)""",
-                (user_id, ni_number, occupation, references_txt, requirements, staff_id),
-            )
-            return tenant_id
-        return None
+        # ── 1. Data Validation ──────────────────────────────────────────
+        # Email Validation
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            raise ValueError("Invalid email format.")
+        
+        # NI Number Validation (Standard UK Format)
+        ni_pattern = r"^[A-CEGHJ-PR-TW-Z]{1}[A-CEGHJ-NPR-TW-Z]{1}[0-9]{6}[A-D]{1}$"
+        clean_ni = ni_number.upper().replace(" ", "")
+        if not re.match(ni_pattern, clean_ni):
+            raise ValueError("Invalid UK National Insurance number format.")
+
+        # Phone Validation (Basic digit check)
+        if not phone.replace("+", "").isdigit() or len(phone) < 10:
+            raise ValueError("Invalid phone number. Must be at least 10 digits.")
+
+        # ── 2. Database Transaction ─────────────────────────────────────
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True) 
+        
+        try:
+            conn.start_transaction()
+            
+            # Insert User
+            pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+            user_sql = """INSERT INTO users (location_id, full_name, email, phone, password_hash) 
+                        VALUES (%s, %s, %s, %s, %s)"""
+            cursor.execute(user_sql, (self.location_id, full_name, email, phone, pw_hash))
+            new_user_id = cursor.lastrowid
+
+            # Fetch staff_id - Now works with ['staff_id'] because of dictionary=True
+            cursor.execute("SELECT staff_id FROM staff WHERE user_id = %s", (self.user_id,))
+            staff_res = cursor.fetchone()
+            staff_id = staff_res['staff_id'] if staff_res else None
+
+            # Insert Tenant
+            tenant_sql = """INSERT INTO tenants (user_id, ni_number, occupation, references_txt, 
+                                            requirements, created_by_staff_id)
+                            VALUES (%s, %s, %s, %s, %s, %s)"""
+            cursor.execute(tenant_sql, (new_user_id, ni_number.upper(), occupation, 
+                                    references_txt, requirements, staff_id))
+
+            conn.commit()
+            return True
+        except Exception as e:
+            conn.rollback()
+            # Raise the error so the Dashboard can show it to the user
+            raise e 
+        finally:
+            cursor.close()
+            conn.close()
 
     def update_tenant(self, tenant_id: int, full_name: str, email: str, phone: str,
                       occupation: str, references_txt: str, requirements: str) -> None:
