@@ -20,4 +20,15 @@ DB_NAME=paragon_apartment_management_system
 ```
 Change DB_PASSWORD to your database password.
 
-To start the software, run "main.py"
+To start the software, run "main.py".
+
+### Dummy Data from the schema
+'''
+Email                       Password        Role
+admin@paragon.com           password123     Admin
+manager@paragon.com         password123     Manager
+frontdesk@paragon.com       password123     Fornt Desk
+finance@paragon.com         password123     Finance Manager
+maintenance@paragon.com     password123     Maintenance Staff
+john@email.com              password123     Tenant
+'''

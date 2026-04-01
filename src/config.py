@@ -16,7 +16,7 @@ DB_CONFIG = {
 APP_TITLE: str = "Property Management System"
 APPEARANCE_MODE: str = "System"
 COLOR_THEME: str = "assets/themes/paragon.json"
-DEBUG_MODE: bool = True # SET TO FALSE WHEN WE R DONE
+DEBUG_MODE: bool = False # True to enable debug logging, False for production
 
 # Window settings
 WINDOW_SCALE: float = 0.75
