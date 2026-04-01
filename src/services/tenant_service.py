@@ -53,20 +53,26 @@ class TenantService:
         if not rows:
             return {"success": False, "error": "No active lease found."}
 
-        rent = float(rows[0]["monthly_rent"])
-        penalty = round(rent * 0.05, 2)
-        notice = date.today()
-        requested_end = notice + timedelta(days=30)
+        penalty = round(float(rows[0]["monthly_rent"]) * 0.05, 2)
+        requested_end = date.today() + timedelta(days=30)
 
+        # 1. Update Lease Status
         update_q = """
-            UPDATE leases
-            SET status = 'TERMINATION_REQUESTED',
-                early_leave_notice_date = %s,
-                early_leave_requested_end = %s,
-                early_leave_penalty = %s
+            UPDATE leases 
+            SET status = 'TERMINATION_REQUESTED', early_leave_penalty = %s,
+                early_leave_notice_date = CURDATE(), early_leave_requested_end = %s
             WHERE lease_id = %s
         """
-        execute_write(update_q, (str(notice), str(requested_end), penalty, lease_id))
+        execute_write(update_q, (penalty, str(requested_end), lease_id))
+
+        # 2. Create Penalty Invoice so it can be paid
+        # We set the due date to the requested end date
+        invoice_q = """
+            INSERT INTO invoices (tenant_id, lease_id, amount, due_date, status)
+            VALUES (%s, %s, %s, %s, 'UNPAID')
+        """
+        execute_write(invoice_q, (self.tenant_id, lease_id, penalty, str(requested_end)))
+        
         return {"success": True, "penalty": penalty, "end_date": str(requested_end)}
 
     # ── Payment Methods ───────────────────────────────────────────────

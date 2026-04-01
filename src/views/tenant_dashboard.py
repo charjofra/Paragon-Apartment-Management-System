@@ -733,70 +733,96 @@ class TenantDashboard(ctk.CTkFrame):
                                  "Could not submit complaint. Do you have an active lease?")
 
     def make_payment_popup(self):
+        # Fetch unpaid invoices from the service
         unpaid_invoices = self.service.get_unpaid_invoices()
         if not unpaid_invoices:
             messagebox.showinfo("Info", "You have no unpaid invoices.")
             return
 
+        # Create the popup window
         popup = ctk.CTkToplevel(self)
         popup.title("Make Payment")
-        popup.geometry("450x420")
+        popup.geometry("450x450")
         popup.transient(self)
         popup.grab_set()
 
-        ctk.CTkLabel(popup, text="Make a Payment",
-                     font=("Arial", 16, "bold")).pack(pady=(15, 5))
+        ctk.CTkLabel(popup, text="Make a Payment", 
+                     font=("Arial", 18, "bold")).pack(pady=(20, 10))
 
-        ctk.CTkLabel(popup, text="Select Invoice:",
-                     font=("Arial", 13)).pack(anchor="w", padx=20, pady=(10, 2))
+        # ── 1. Invoice Selection ──
+        ctk.CTkLabel(popup, text="Select Invoice:", 
+                     font=("Arial", 13, "bold")).pack(anchor="w", padx=25, pady=(10, 2))
 
-        invoice_options = {
-            f"Inv #{i['invoice_id']} — £{i['amount_due']} (Due: {_uk_date(i['due_date'])})": i
-            for i in unpaid_invoices
-        }
+        invoice_options = {}
+        for i in unpaid_invoices:
+            # Logic to identify if this is a penalty or regular rent for the label
+            # Typical rent is much higher than the 5% penalty
+            label = f"Inv #{i['invoice_id']} — £{i['amount_due']}"
+            if float(i['amount_due']) < 150:  # Threshold based on 5% of typical UK rent
+                label += " (Early Termination Fee)"
+            else:
+                label += " (Rent)"
+            
+            label += f" — Due: {_uk_date(i['due_date'])}"
+            invoice_options[label] = i
+
         selected_invoice = ctk.StringVar(value=list(invoice_options.keys())[0])
-        ctk.CTkOptionMenu(popup, variable=selected_invoice,
-                           values=list(invoice_options.keys()), width=400).pack(padx=20, pady=5)
+        dropdown = ctk.CTkOptionMenu(popup, variable=selected_invoice, 
+                                     values=list(invoice_options.keys()), width=400)
+        dropdown.pack(padx=25, pady=5)
 
-        ctk.CTkLabel(popup, text="Card Number (16 digits):",
-                     font=("Arial", 13)).pack(anchor="w", padx=20, pady=(15, 2))
+        # ── 2. Card Number Input ──
+        ctk.CTkLabel(popup, text="Card Number (16 digits):", 
+                     font=("Arial", 13, "bold")).pack(anchor="w", padx=25, pady=(15, 2))
         card_entry = ctk.CTkEntry(popup, placeholder_text="XXXX XXXX XXXX XXXX", width=400)
-        card_entry.pack(padx=20, pady=5)
+        card_entry.pack(padx=25, pady=5)
 
-        ctk.CTkLabel(popup, text="Expiry (MM/YY):",
-                     font=("Arial", 13)).pack(anchor="w", padx=20, pady=(10, 2))
+        # ── 3. Expiry Date Input ──
+        ctk.CTkLabel(popup, text="Expiry (MM/YY):", 
+                     font=("Arial", 13, "bold")).pack(anchor="w", padx=25, pady=(10, 2))
         expiry_entry = ctk.CTkEntry(popup, placeholder_text="MM/YY", width=400)
-        expiry_entry.pack(padx=20, pady=5)
+        expiry_entry.pack(padx=25, pady=5)
 
         def process_payment():
+            # Get data from fields
             key = selected_invoice.get()
             inv_data = invoice_options[key]
             card_num = card_entry.get().replace(" ", "").replace("-", "")
             expiry = expiry_entry.get().strip()
 
-            # Card validation
+            # ── GUI VALIDATION: Format & Regex ──
+            # 1. Card Number check
             if not card_num.isdigit() or len(card_num) != 16:
-                messagebox.showerror("Error", "Invalid card number. Must be 16 digits.",
-                                     parent=popup)
+                messagebox.showerror("Validation Error", 
+                                     "Invalid Card Number. Must be 16 numeric digits.", parent=popup)
                 return
-
-            # Expiry validation
+            
+            # 2. Expiry Format check (MM/YY)
+            import re
             if not re.match(r"^(0[1-9]|1[0-2])\/[0-9]{2}$", expiry):
-                messagebox.showerror("Error", "Invalid Expiry format. Please use MM/YY (e.g., 05/27).", parent=popup)
+                messagebox.showerror("Validation Error", 
+                                     "Invalid Expiry format. Please use MM/YY.", parent=popup)
                 return
 
-            success, message = self.service.pay_invoice(inv_data['invoice_id'],
-                                               float(inv_data['amount_due']),
-                                                expiry)
+            # ── SERVICE CALL: Logical Validation ──
+            # Pass expiry to service to check if the date is in the past
+            success, message = self.service.pay_invoice(
+                inv_data['invoice_id'], 
+                float(inv_data['amount_due']),
+                expiry
+            )
+
             if success:
-                messagebox.showinfo("Success",
-                                    f"Payment of £{inv_data['amount_due']} successful!",
-                                    parent=popup)
+                messagebox.showinfo("Success", 
+                                    f"Payment of £{inv_data['amount_due']} successful!", parent=popup)
                 popup.destroy()
+                # Refresh dashboard tabs to show updated status
                 self.setup_payments_tab()
                 self.setup_overview_tab()
             else:
-                messagebox.showerror("Payment Failed", message, parent=popup)
+                # Displays "That card is expired please use another" or other service errors
+                messagebox.showerror("Payment Failed", str(message), parent=popup)
 
-        ctk.CTkButton(popup, text="Pay Now", command=process_payment,
-                       width=200).pack(pady=20)
+        # ── 4. Action Button ──
+        ctk.CTkButton(popup, text="Pay Securely Now", command=process_payment, 
+                       fg_color="#2ecc71", hover_color="#27ae60", width=250, height=40).pack(pady=30)
