@@ -15,7 +15,7 @@ pip install customtkinter
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=your_db_password
+DB_PASSWORD=
 DB_NAME=paragon_apartment_management_system
 ```
 Change DB_PASSWORD to your database password.
