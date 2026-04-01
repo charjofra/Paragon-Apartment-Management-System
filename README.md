@@ -4,7 +4,7 @@ Group project for Advanced Software Development and Systems Development.
 ### Install dependencies
 ```
 pip install mysql-connector-python
-pip istall bcrypt
+pip install bcrypt
 pip install python-dotenv
 pip install pillow
 pip install customtkinter
