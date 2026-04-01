@@ -67,8 +67,7 @@ class App(ctk.CTk):
         if not user_role and getattr(user, 'tenant_id', None):
             user_role = 'TENANT'
         
-        # default to admin only while testing, remember to change this!!!!
-        FrameClass = ROLE_FRAME_MAP.get(user_role, AdminDashboard)
+        FrameClass = ROLE_FRAME_MAP.get(user_role, TenantDashboard)
         
         self.current_frame = FrameClass(parent=self, user=user)
         self.current_frame.pack(fill="both", expand=True)
