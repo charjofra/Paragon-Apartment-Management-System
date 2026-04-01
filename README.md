@@ -19,3 +19,5 @@ DB_PASSWORD=
 DB_NAME=paragon_apartment_management_system
 ```
 Change DB_PASSWORD to your database password.
+
+To start the software, run "main.py"
