@@ -191,13 +191,14 @@ class TenantService:
             return []
 
         location_id = loc_rows[0]["location_id"]
+        
         query = """
             SELECT a.unit_code, COUNT(i.invoice_id) AS late_count
             FROM invoices i
             JOIN leases l ON i.lease_id = l.lease_id
             JOIN apartments a ON l.apartment_id = a.apartment_id
             WHERE a.location_id = %s
-              AND i.status IN ('LATE')
+              AND (i.status = 'LATE' OR (i.status = 'UNPAID' AND i.due_date < CURDATE()))
             GROUP BY a.unit_code
             ORDER BY late_count DESC
         """
