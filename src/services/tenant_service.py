@@ -1,7 +1,7 @@
 from utils.db_utils import execute_read, execute_write
 from models import Payment, MaintenanceRequest, Complaint
 from typing import List, Dict, Any
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 
 class TenantService:
@@ -197,7 +197,17 @@ class TenantService:
         """
         return execute_read(query, (location_id,))
 
-    def pay_invoice(self, invoice_id: int, amount: float) -> bool:
+    def pay_invoice(self, invoice_id: int, amount: float, expiry_date: str) -> bool:
+        try:
+            # Convert MM/YY to the last day of that month for comparison
+            exp_date = datetime.strptime(expiry_date, "%m/%y")
+            # If the current date is after the expiry month
+            if exp_date.year < datetime.now().year or \
+               (exp_date.year == datetime.now().year and exp_date.month < datetime.now().month):
+                return False, "That card is expired please use another" # Logic failed: Card is expired
+        except ValueError:
+            return False, "Invalid expiry date format. Please use MM/YY (e.g., 05/27)."
+        
         user_query = "SELECT user_id FROM tenants WHERE tenant_id = %s"
         users = execute_read(user_query, (self.tenant_id,))
         user_id = users[0]['user_id'] if users else None
@@ -210,7 +220,7 @@ class TenantService:
 
         invoice_query = "UPDATE invoices SET status = 'PAID' WHERE invoice_id = %s"
         execute_write(invoice_query, (invoice_id,))
-        return True
+        return True, "Success"
 
     # ── Maintenance Methods ───────────────────────────────────────────
 

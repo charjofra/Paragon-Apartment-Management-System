@@ -4,6 +4,7 @@ from services.tenant_service import TenantService
 from typing import TYPE_CHECKING
 from tkinter import messagebox
 from datetime import datetime, date
+import re
 
 import matplotlib
 matplotlib.use("Agg")
@@ -779,14 +780,14 @@ class TenantDashboard(ctk.CTkFrame):
                                      parent=popup)
                 return
 
-            # Basic expiry validation
-            if not expiry or len(expiry) < 4:
-                messagebox.showerror("Error", "Please enter a valid expiry date (MM/YY).",
-                                     parent=popup)
+            # Expiry validation
+            if not re.match(r"^(0[1-9]|1[0-2])\/[0-9]{2}$", expiry):
+                messagebox.showerror("Error", "Invalid Expiry format. Please use MM/YY (e.g., 05/27).", parent=popup)
                 return
 
-            success = self.service.pay_invoice(inv_data['invoice_id'],
-                                               float(inv_data['amount_due']))
+            success, message = self.service.pay_invoice(inv_data['invoice_id'],
+                                               float(inv_data['amount_due']),
+                                                expiry)
             if success:
                 messagebox.showinfo("Success",
                                     f"Payment of £{inv_data['amount_due']} successful!",
@@ -795,7 +796,7 @@ class TenantDashboard(ctk.CTkFrame):
                 self.setup_payments_tab()
                 self.setup_overview_tab()
             else:
-                messagebox.showerror("Error", "Payment failed.", parent=popup)
+                messagebox.showerror("Payment Failed", message, parent=popup)
 
         ctk.CTkButton(popup, text="Pay Now", command=process_payment,
                        width=200).pack(pady=20)
