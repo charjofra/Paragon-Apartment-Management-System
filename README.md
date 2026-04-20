@@ -8,6 +8,17 @@ pip install bcrypt
 pip install python-dotenv
 pip install pillow
 pip install customtkinter
+pip install pytest
+```
+
+### Running Tests
+To run the automated tests for models and services, ensure `pytest` is installed and run the following command in the project root:
+```bash
+python -m pytest tests/
+```
+Or, if you are using your local python environment:
+```bash
+python -m pytest tests/
 ```
 
 ### Make a .env file in the root and insert the following
