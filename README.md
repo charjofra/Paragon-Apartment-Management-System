@@ -16,10 +16,7 @@ To run the automated tests for models and services, ensure `pytest` is installed
 ```bash
 python -m pytest tests/
 ```
-Or, if you are using your local python environment:
-```bash
-python -m pytest tests/
-```
+
 
 ### Make a .env file in the root and insert the following
 ```
