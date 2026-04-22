@@ -105,7 +105,7 @@ class TenantService:
     def get_monthly_payment_data(self) -> List[Dict[str, Any]]:
         """Monthly totals for the tenant's payment history chart."""
         query = """
-            SELECT DATE_FORMAT(p.paid_at, '%%Y-%%m') AS month,
+            SELECT DATE_FORMAT(p.paid_at, '%Y-%m') AS month,
                    SUM(p.amount_paid) AS total
             FROM payments p
             JOIN invoices i ON p.invoice_id = i.invoice_id
@@ -134,7 +134,7 @@ class TenantService:
 
         # Tenant's monthly payments
         t_q = """
-            SELECT DATE_FORMAT(p.paid_at, '%%Y-%%m') AS month,
+            SELECT DATE_FORMAT(p.paid_at, '%Y-%m') AS month,
                    SUM(p.amount_paid) AS total
             FROM payments p
             JOIN invoices i ON p.invoice_id = i.invoice_id
@@ -146,8 +146,8 @@ class TenantService:
 
         # Average of neighbours at same location (excluding this tenant)
         n_q = """
-            SELECT DATE_FORMAT(p.paid_at, '%%Y-%%m') AS month,
-                   AVG(monthly_total) AS avg_total
+            SELECT DATE_FORMAT(p.paid_at, '%Y-%m') AS month,
+                   ROUND(SUM(p.amount_paid) / COUNT(DISTINCT l.tenant_id), 2) AS avg_total
             FROM (
                 SELECT p2.paid_at, l2.tenant_id,
                        SUM(p2.amount_paid) AS monthly_total
@@ -156,15 +156,15 @@ class TenantService:
                 JOIN leases l2 ON i2.lease_id = l2.lease_id
                 JOIN apartments a2 ON l2.apartment_id = a2.apartment_id
                 WHERE a2.location_id = %s AND l2.tenant_id != %s
-                GROUP BY DATE_FORMAT(p2.paid_at, '%%Y-%%m'), l2.tenant_id
+                GROUP BY DATE_FORMAT(p2.paid_at, '%Y-%m'), l2.tenant_id
             ) AS sub
             JOIN payments p ON 1=1
-            GROUP BY DATE_FORMAT(p.paid_at, '%%Y-%%m')
+            GROUP BY DATE_FORMAT(p.paid_at, '%Y-%m')
             ORDER BY month
         """
         # Simpler neighbour average query
         n_q = """
-            SELECT DATE_FORMAT(p.paid_at, '%%Y-%%m') AS month,
+            SELECT DATE_FORMAT(p.paid_at, '%Y-%m') AS month,
                    ROUND(SUM(p.amount_paid) / COUNT(DISTINCT l.tenant_id), 2) AS avg_total
             FROM payments p
             JOIN invoices i ON p.invoice_id = i.invoice_id
