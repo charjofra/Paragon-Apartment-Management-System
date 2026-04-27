@@ -5,7 +5,6 @@ from models.user import User
 def test_apartment_negative_rent_fails():
     """
     Test that invalid data (negative rent) throws a ValueError.
-    Note: To pass this test, you MUST add a check like IF monthly_rent < 0 RAISE ValueError in apartment.py
     """
     with pytest.raises(ValueError):
         # We are intentionally injecting BAD DATA
@@ -23,7 +22,6 @@ def test_apartment_negative_rent_fails():
 def test_user_invalid_email_fails():
     """
     Test that invalid data (no @ in email) throws a ValueError.
-    Note: To pass this test, you MUST add a check like IF '@' not in email RAISE ValueError in user.py
     """
     with pytest.raises(ValueError):
         user = User(
